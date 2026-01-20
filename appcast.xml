@@ -2,7 +2,7 @@
 <rss version="2.0" xmlns:sparkle="http://www.andymatuschak.org/xml-namespaces/sparkle" xmlns:dc="http://purl.org/dc/elements/1.1/">
   <channel>
     <title>WriterPro Updates</title>
-    <link>https://ndimaria3311.github.io/writerpro-site/</link>
+    <link>https://writer-pro.github.io/writerpro-site/</link>
     <description>Latest releases for WriterPro</description>
     <language>en</language>
 
@@ -12,7 +12,7 @@
       <sparkle:shortVersionString>1.0.2</sparkle:shortVersionString>
       <pubDate>Mon, 20 Jan 2025 02:00:00 +0000</pubDate>
       <enclosure
-        url="https://ndimaria3311.github.io/writerpro-site/WriterPro.dmg"
+        url="https://writer-pro.github.io/writerpro-site/WriterPro.dmg"
         sparkle:edSignature="XTnWiULiZKU0jyOC/qAPC5RzVQyQDjmBDztvd+wtQf05y17Wsn1jPd5iPMgV7tjbblsZ90SveYZAfSsrHH2oCg=="
         length="1662819"
         type="application/octet-stream" />
