@@ -13,7 +13,7 @@
         <div class="nav-actions">
           <a class="btn btn-outline" href="#features">FEATURES</a>
           <a class="btn btn-outline" href="#pricing">PRICING</a>
-          <a class="btn btn-primary" href="WriterPro.dmg">DOWNLOAD</a>
+          <a class="btn btn-primary js-download" href="WriterPro.dmg" data-download="WriterPro.dmg">DOWNLOAD</a>
         </div>
       </nav>
 
@@ -24,13 +24,13 @@
             Human-style typing with AI outline support. Built for macOS.
           </p>
           <div class="cta-row">
-            <a class="btn btn-primary btn-lg" href="WriterPro.dmg">DOWNLOAD FOR macOS</a>
+            <a class="btn btn-primary btn-lg js-download" href="WriterPro.dmg" data-download="WriterPro.dmg">DOWNLOAD FOR macOS</a>
             <a class="btn btn-outline btn-lg" href="#demo">WATCH DEMO</a>
           </div>
           <div class="hero-stats">
             <div class="stat">
-              <div class="stat-num">100</div>
-              <div class="stat-label">Credits = $10</div>
+              <div class="stat-num">FROM</div>
+              <div class="stat-label">$4.99 CAD / mo</div>
             </div>
             <div class="stat">
               <div class="stat-num">1</div>
@@ -38,7 +38,7 @@
             </div>
             <div class="stat">
               <div class="stat-num">macOS</div>
-              <div class="stat-label">Only</div>
+              <div class="stat-label">12+ only</div>
             </div>
           </div>
         </div>
@@ -113,19 +113,34 @@
     <section class="section" id="pricing">
       <h2>CREDITS & PRICING</h2>
       <div class="pricing">
-        <div class="pricing-card">
-          <div class="price">100 CREDITS</div>
-          <div class="price-sub">$10.00</div>
-          <div class="price-meta">1 credit = 50 characters</div>
-          <div class="price-meta">500 words ≈ 2,500 chars ≈ 50 credits</div>
-          <a class="btn btn-primary" href="#download">BUY CREDITS</a>
+        <div class="pricing-grid">
+          <div class="pricing-card">
+            <div class="price">65 CREDITS</div>
+            <div class="price-sub">$4.99 CAD / month</div>
+          </div>
+          <div class="pricing-card">
+            <div class="price">100 CREDITS</div>
+            <div class="price-sub">$9.99 CAD one-time</div>
+          </div>
+          <div class="pricing-card">
+            <div class="price">180 CREDITS</div>
+            <div class="price-sub">$11.99 CAD / month</div>
+          </div>
+          <div class="pricing-card">
+            <div class="price">220 CREDITS</div>
+            <div class="price-sub">$19.99 CAD one-time</div>
+          </div>
+          <div class="pricing-card">
+            <div class="price">430 CREDITS</div>
+            <div class="price-sub">$24.99 CAD / month</div>
+          </div>
         </div>
         <div class="pricing-notes">
-          <p>No subscriptions. Clear usage. Full control.</p>
+          <p>1 credit = 500 characters.</p>
           <ul>
             <li>Credits used per essay length</li>
             <li>Transparent cost before saving</li>
-            <li>Refresh after purchase</li>
+            <li>Manage subscriptions anytime</li>
           </ul>
         </div>
       </div>
@@ -153,9 +168,9 @@
     <section class="section" id="download">
       <div class="download-card">
         <h2>GET WRITER PRO FOR macOS</h2>
-        <p>Built for macOS only. Download, install, and start typing.</p>
-        <a class="btn btn-primary btn-lg" href="WriterPro.dmg">DOWNLOAD NOW</a>
-        <div class="small">macOS only</div>
+        <p>Built for macOS 12 or later. Download, install, and start typing.</p>
+        <a class="btn btn-primary btn-lg js-download" href="WriterPro.dmg" data-download="WriterPro.dmg">DOWNLOAD NOW</a>
+        <div class="small">macOS 12+</div>
       </div>
     </section>
 
@@ -167,12 +182,63 @@
     </section>
 
     <footer class="footer">
-      <div>Made by Niccolo Di Maria</div>
       <div class="footer-links">
-        <a href="#">Terms</a>
-        <a href="#">Privacy</a>
-        <a href="#">Support</a>
+        <a href="terms.html">Terms</a>
+        <a href="privacy.html">Privacy</a>
+        <a href="mailto:support@writerpro.app">Support</a>
       </div>
     </footer>
+
+    <div class="modal hidden" id="download-modal" role="dialog" aria-modal="true" aria-labelledby="download-title">
+      <div class="modal-card">
+        <h3 id="download-title">Before You Download</h3>
+        <p>
+          By downloading Writer Pro, you agree to the
+          <a href="terms.html" target="_blank" rel="noreferrer">Terms of Service</a>
+          and
+          <a href="privacy.html" target="_blank" rel="noreferrer">Privacy Policy</a>.
+        </p>
+        <label class="agree">
+          <input type="checkbox" id="agree-check" />
+          <span>I agree to the Terms and Privacy Policy.</span>
+        </label>
+        <div class="modal-actions">
+          <button class="btn btn-outline" id="download-cancel">Cancel</button>
+          <button class="btn btn-primary" id="download-confirm" disabled>Download</button>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      const modal = document.getElementById("download-modal");
+      const agreeCheck = document.getElementById("agree-check");
+      const confirmBtn = document.getElementById("download-confirm");
+      const cancelBtn = document.getElementById("download-cancel");
+      const downloadLinks = document.querySelectorAll(".js-download");
+      let downloadHref = "WriterPro.dmg";
+
+      downloadLinks.forEach((link) => {
+        link.addEventListener("click", (e) => {
+          e.preventDefault();
+          downloadHref = link.getAttribute("data-download") || "WriterPro.dmg";
+          modal.classList.remove("hidden");
+          agreeCheck.checked = false;
+          confirmBtn.disabled = true;
+        });
+      });
+
+      agreeCheck.addEventListener("change", () => {
+        confirmBtn.disabled = !agreeCheck.checked;
+      });
+
+      confirmBtn.addEventListener("click", () => {
+        window.location.href = downloadHref;
+        modal.classList.add("hidden");
+      });
+
+      cancelBtn.addEventListener("click", () => {
+        modal.classList.add("hidden");
+      });
+    </script>
   </body>
 </html>
