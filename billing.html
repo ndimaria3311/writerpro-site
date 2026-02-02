@@ -241,7 +241,7 @@
       loadSession();
       updateSessionUI();
       if (!session?.access_token) {
-        navigateWithFade("app.html");
+        window.location.replace("app.html");
         return;
       } else {
         setBillingLocked(false);

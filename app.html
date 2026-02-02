@@ -103,22 +103,33 @@
       }
 
       async function signIn() {
+        const email = emailEl.value.trim();
+        const password = passwordEl.value;
+        if (!email || !password) {
+          authStatus.textContent = "Enter email and password.";
+          return;
+        }
         setAuthLoading(true);
         authStatus.textContent = "Signing in...";
         try {
           const res = await supabaseRequest("/auth/v1/token?grant_type=password", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ email: emailEl.value, password: passwordEl.value })
+            body: JSON.stringify({ email, password })
           });
           if (!res.ok) {
-            authStatus.textContent = "Sign in failed.";
+            let detail = "";
+            try {
+              const payload = await res.json();
+              detail = payload?.error_description || payload?.msg || payload?.error || "";
+            } catch {}
+            authStatus.textContent = detail ? `Sign in failed: ${detail}` : "Sign in failed.";
             return;
           }
           storeSession(await res.json());
           updateSessionUI();
-          authStatus.textContent = "Signed in. Redirecting to billing...";
-          setTimeout(() => navigateWithFade("billing.html"), 450);
+          authStatus.textContent = "Signed in. Redirecting to dashboard...";
+          setTimeout(() => { window.location.replace("billing.html"); }, 250);
         } finally {
           setAuthLoading(false);
         }
@@ -160,11 +171,17 @@
 
       loginBtn.addEventListener("click", signIn);
       signupBtn.addEventListener("click", signUp);
+      passwordEl.addEventListener("keydown", (event) => {
+        if (event.key === "Enter") signIn();
+      });
+      emailEl.addEventListener("keydown", (event) => {
+        if (event.key === "Enter") signIn();
+      });
 
       loadSession();
       updateSessionUI();
       if (session?.access_token) {
-        navigateWithFade("billing.html");
+        window.location.replace("billing.html");
         return;
       }
 
