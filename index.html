@@ -14,7 +14,8 @@
         <div class="nav-actions">
           <a class="btn btn-outline" href="#features">FEATURES</a>
           <a class="btn btn-outline" href="#pricing">PRICING</a>
-          <a class="btn btn-outline" href="app.html">ACCOUNT</a>
+          <a class="btn btn-outline page-link" href="app.html">SIGN IN</a>
+          <a class="btn btn-outline page-link" href="billing.html">BILLING</a>
           <a class="btn btn-primary js-download" href="WriterPro.dmg" data-download="WriterPro.dmg">DOWNLOAD</a>
         </div>
       </nav>
@@ -260,6 +261,17 @@
     </div>
 
     <script>
+      document.body.classList.add("page-enter");
+      const pageLinks = document.querySelectorAll(".page-link");
+      pageLinks.forEach((link) => {
+        link.addEventListener("click", (event) => {
+          event.preventDefault();
+          document.body.classList.add("page-exit");
+          const href = link.getAttribute("href");
+          setTimeout(() => { window.location.href = href; }, 240);
+        });
+      });
+
       const modal = document.getElementById("download-modal");
       const agreeCheck = document.getElementById("agree-check");
       const confirmBtn = document.getElementById("download-confirm");

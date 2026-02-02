@@ -24,6 +24,18 @@ body {
   line-height: 1.55;
   font-size: 16px;
   scroll-behavior: smooth;
+  opacity: 1;
+  transform: translateY(0);
+  transition: opacity 0.24s ease, transform 0.24s ease;
+}
+
+body.page-enter {
+  animation: page-in 0.28s ease;
+}
+
+body.page-exit {
+  opacity: 0;
+  transform: translateY(8px);
 }
 
 a {
@@ -426,6 +438,15 @@ a {
   grid-template-columns: 1fr;
 }
 
+.account-grid-single {
+  grid-template-columns: minmax(320px, 560px);
+  justify-content: center;
+}
+
+.account-pricing-grid {
+  grid-template-columns: 1fr;
+}
+
 .form-stack {
   display: grid;
   gap: 12px;
@@ -433,11 +454,24 @@ a {
 }
 
 .input {
-  padding: 10px 12px;
-  border-radius: 12px;
+  padding: 12px 14px;
+  border-radius: 14px;
   border: 1px solid var(--border);
+  background: var(--surface-alt);
+  color: var(--text);
+  font-size: 15px;
+  outline: none;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+}
+
+.input::placeholder {
+  color: var(--muted);
+}
+
+.input:focus {
+  border-color: color-mix(in srgb, var(--accent) 65%, var(--border));
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--accent) 18%, transparent);
   background: var(--surface);
-  font-size: 14px;
 }
 
 .notice {
@@ -578,6 +612,17 @@ a {
   from {
     opacity: 0;
     transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes page-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
   }
   to {
     opacity: 1;

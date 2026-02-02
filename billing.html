@@ -1,0 +1,213 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Writer Pro — Billing</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body class="page-enter">
+    <header class="hero">
+      <nav class="nav">
+        <div class="logo">WRITER PRO</div>
+        <div class="nav-actions">
+          <a class="btn btn-outline page-link" href="index.html">HOME</a>
+          <a class="btn btn-outline page-link" href="app.html">SIGN IN</a>
+          <a class="btn btn-primary" href="#billing">BILLING</a>
+        </div>
+      </nav>
+
+      <div class="hero-grid">
+        <div class="hero-copy">
+          <h1>BILLING</h1>
+          <p class="subtitle">Choose a plan after login. Checkout is locked until signed in.</p>
+        </div>
+      </div>
+    </header>
+
+    <section class="section" id="billing">
+      <div class="account-grid">
+        <div class="card">
+          <h3>ACCOUNT STATUS</h3>
+          <p id="auth-state">Checking session...</p>
+          <div class="credit-balance" id="credits">Balance: —</div>
+          <div class="cta-row">
+            <a class="btn btn-primary page-link" href="app.html" id="signin-link">Sign In</a>
+            <button class="btn btn-outline" id="logout">Sign Out</button>
+          </div>
+          <p class="notice" id="billing-status"></p>
+        </div>
+
+        <div class="card">
+          <h3>SUBSCRIPTIONS</h3>
+          <div class="pricing-grid account-pricing-grid">
+            <button class="btn btn-outline buy" data-pack="credits_65_monthly">Monthly 65 • $4.99 CAD</button>
+            <button class="btn btn-outline buy" data-pack="credits_180_monthly">Monthly 180 • $11.99 CAD</button>
+            <button class="btn btn-outline buy" data-pack="credits_430_monthly">Monthly 430 • $24.99 CAD</button>
+          </div>
+          <div class="cta-row" style="margin-top: 12px;">
+            <button class="btn btn-outline" id="portal">Manage Subscription</button>
+          </div>
+        </div>
+
+        <div class="card">
+          <h3>ONE-TIME CREDITS</h3>
+          <div class="pricing-grid account-pricing-grid">
+            <button class="btn btn-outline buy" data-pack="credits_100">Buy 100 • $9.99 CAD</button>
+            <button class="btn btn-outline buy" data-pack="credits_220">Buy 220 • $19.99 CAD</button>
+          </div>
+          <div class="cta-row" style="margin-top: 12px;">
+            <button class="btn btn-primary" id="refresh">Refresh Credits</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <footer class="footer">
+      <div class="footer-links">
+        <a href="terms.html">Terms</a>
+        <a href="privacy.html">Privacy</a>
+      </div>
+    </footer>
+
+    <script>
+      const SUPABASE_URL = "https://vnzlaidwxgiaowhxtuvi.supabase.co";
+      const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZuemxhaWR3eGdpYW93aHh0dXZpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg4MjcwNzksImV4cCI6MjA4NDQwMzA3OX0.AKiGX3xbgMKtUFYxHKEaAKwacFqmjPEsy56ofU1eDQQ";
+      const FN_CREATE_CHECKOUT = "create-checkout-session";
+      const FN_PORTAL = "create-portal-session";
+
+      const authState = document.getElementById("auth-state");
+      const billingStatus = document.getElementById("billing-status");
+      const creditsEl = document.getElementById("credits");
+      const buyButtons = Array.from(document.querySelectorAll(".buy"));
+      const portalButton = document.getElementById("portal");
+      const refreshButton = document.getElementById("refresh");
+      let session = null;
+
+      function loadSession() {
+        try {
+          const raw = localStorage.getItem("wp_session");
+          if (raw) session = JSON.parse(raw);
+        } catch {
+          session = null;
+        }
+      }
+
+      function navigateWithFade(url) {
+        document.body.classList.add("page-exit");
+        setTimeout(() => { window.location.href = url; }, 240);
+      }
+
+      document.querySelectorAll(".page-link").forEach((link) => {
+        link.addEventListener("click", (event) => {
+          event.preventDefault();
+          navigateWithFade(link.getAttribute("href"));
+        });
+      });
+
+      function setBillingLocked(locked) {
+        buyButtons.forEach((btn) => { btn.disabled = locked; });
+        portalButton.disabled = locked;
+        refreshButton.disabled = locked;
+      }
+
+      async function supabaseRequest(path, options) {
+        const headers = options.headers || {};
+        headers["apikey"] = SUPABASE_ANON_KEY;
+        if (session?.access_token) headers["Authorization"] = `Bearer ${session.access_token}`;
+        return fetch(`${SUPABASE_URL}${path}`, { ...options, headers });
+      }
+
+      async function refreshCredits() {
+        if (!session?.access_token) return;
+        billingStatus.textContent = "Refreshing...";
+        const userRes = await supabaseRequest("/auth/v1/user", { method: "GET" });
+        if (!userRes.ok) {
+          billingStatus.textContent = "Failed to load profile.";
+          return;
+        }
+        const user = await userRes.json();
+        const email = user?.email;
+        const res = await supabaseRequest(`/rest/v1/profiles?select=credits,email,is_admin&email=eq.${encodeURIComponent(email)}`, {
+          method: "GET",
+          headers: { "Content-Type": "application/json" }
+        });
+        if (!res.ok) {
+          billingStatus.textContent = "Failed to load credits.";
+          return;
+        }
+        const data = await res.json();
+        creditsEl.textContent = `Balance: ${data?.[0]?.credits ?? 0}`;
+        billingStatus.textContent = "";
+      }
+
+      async function startCheckout(packId) {
+        if (!session?.access_token) {
+          billingStatus.textContent = "Sign in required before checkout.";
+          return;
+        }
+        billingStatus.textContent = "Opening checkout...";
+        const res = await supabaseRequest(`/functions/v1/${FN_CREATE_CHECKOUT}`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ pack_id: packId })
+        });
+        if (!res.ok) {
+          billingStatus.textContent = "Checkout failed.";
+          return;
+        }
+        const payload = await res.json();
+        window.location.href = payload.url;
+      }
+
+      async function openPortal() {
+        if (!session?.access_token) {
+          billingStatus.textContent = "Sign in required before opening portal.";
+          return;
+        }
+        billingStatus.textContent = "Opening portal...";
+        const res = await supabaseRequest(`/functions/v1/${FN_PORTAL}`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({})
+        });
+        if (!res.ok) {
+          billingStatus.textContent = "Portal failed.";
+          return;
+        }
+        const payload = await res.json();
+        window.location.href = payload.url;
+      }
+
+      function signOut() {
+        localStorage.removeItem("wp_session");
+        session = null;
+        setBillingLocked(true);
+        authState.textContent = "Signed out. Please sign in to continue.";
+        creditsEl.textContent = "Balance: —";
+      }
+
+      buyButtons.forEach((btn) => btn.addEventListener("click", () => startCheckout(btn.dataset.pack)));
+      portalButton.addEventListener("click", openPortal);
+      refreshButton.addEventListener("click", refreshCredits);
+      document.getElementById("logout").addEventListener("click", signOut);
+
+      loadSession();
+      if (!session?.access_token) {
+        setBillingLocked(true);
+        authState.textContent = "Not signed in.";
+        billingStatus.textContent = "Please sign in first.";
+      } else {
+        setBillingLocked(false);
+        authState.textContent = "Signed in.";
+        refreshCredits();
+      }
+
+      const params = new URLSearchParams(window.location.search);
+      if (params.get("checkout") === "success") {
+        billingStatus.textContent = "Purchase complete. Refreshing credits...";
+        refreshCredits();
+      }
+    </script>
+  </body>
+</html>
