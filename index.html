@@ -359,6 +359,12 @@
       downloadLinks.forEach((link) => {
         link.addEventListener("click", (e) => {
           e.preventDefault();
+          if (!hasSessionToken()) {
+            const target = `index.html?download=1#download`;
+            document.body.classList.add("page-exit");
+            setTimeout(() => { window.location.href = `app.html?next=${encodeURIComponent(target)}`; }, 240);
+            return;
+          }
           downloadHref = link.getAttribute("data-download") || "WriterPro.dmg";
           modal.classList.remove("hidden");
           agreeCheck.checked = false;
@@ -378,6 +384,14 @@
       cancelBtn.addEventListener("click", () => {
         modal.classList.add("hidden");
       });
+
+      const urlParams = new URLSearchParams(window.location.search);
+      if (urlParams.get("download") === "1" && hasSessionToken()) {
+        downloadHref = "WriterPro.dmg";
+        modal.classList.remove("hidden");
+        agreeCheck.checked = false;
+        confirmBtn.disabled = true;
+      }
     </script>
   </body>
 </html>
