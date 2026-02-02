@@ -73,9 +73,13 @@
             const serialized = JSON.stringify(next);
             localStorage.setItem("wp_session", serialized);
             sessionStorage.setItem("wp_session", serialized);
+            window.name = `wp_session:${serialized}`;
           } else {
             localStorage.removeItem("wp_session");
             sessionStorage.removeItem("wp_session");
+            if (window.name && window.name.startsWith("wp_session:")) {
+              window.name = "";
+            }
           }
         } catch {}
       }
