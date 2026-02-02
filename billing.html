@@ -153,7 +153,16 @@
           body: JSON.stringify({ pack_id: packId })
         });
         if (!res.ok) {
-          billingStatus.textContent = "Checkout failed.";
+          let detail = "";
+          try {
+            const payload = await res.json();
+            detail = payload?.error || payload?.message || "";
+          } catch {}
+          billingStatus.textContent = detail ? `Checkout failed: ${detail}` : "Checkout failed.";
+          if (res.status === 401) {
+            billingStatus.textContent = "Session expired. Please sign in again.";
+            setBillingLocked(true);
+          }
           return;
         }
         const payload = await res.json();
@@ -172,7 +181,16 @@
           body: JSON.stringify({})
         });
         if (!res.ok) {
-          billingStatus.textContent = "Portal failed.";
+          let detail = "";
+          try {
+            const payload = await res.json();
+            detail = payload?.error || payload?.message || "";
+          } catch {}
+          billingStatus.textContent = detail ? `Portal failed: ${detail}` : "Portal failed.";
+          if (res.status === 401) {
+            billingStatus.textContent = "Session expired. Please sign in again.";
+            setBillingLocked(true);
+          }
           return;
         }
         const payload = await res.json();
