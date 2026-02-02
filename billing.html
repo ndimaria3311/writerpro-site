@@ -155,14 +155,16 @@
       }
       function storeSession(next) {
         session = next;
-        if (next) {
-          const serialized = JSON.stringify(next);
-          localStorage.setItem("wp_session", serialized);
-          sessionStorage.setItem("wp_session", serialized);
-        } else {
-          localStorage.removeItem("wp_session");
-          sessionStorage.removeItem("wp_session");
-        }
+        try {
+          if (next) {
+            const serialized = JSON.stringify(next);
+            localStorage.setItem("wp_session", serialized);
+            sessionStorage.setItem("wp_session", serialized);
+          } else {
+            localStorage.removeItem("wp_session");
+            sessionStorage.removeItem("wp_session");
+          }
+        } catch {}
       }
       const params = new URLSearchParams(window.location.search);
       const requestedPackId = params.get("pack_id");
