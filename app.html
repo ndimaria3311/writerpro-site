@@ -118,8 +118,28 @@
       function goToBilling() {
         const params = new URLSearchParams(window.location.search);
         const next = params.get("next");
-        const target = next && next.trim().length > 0 ? next : `billing.html?v=${Date.now()}`;
+        const baseTarget = next && next.trim().length > 0 ? next : `billing.html?v=${Date.now()}`;
+        const tokenHash = buildTokenHash();
+        const target = tokenHash ? appendHash(baseTarget, tokenHash) : baseTarget;
         navigateWithFade(target);
+      }
+
+      function buildTokenHash() {
+        if (!hasSessionToken()) return "";
+        const parts = [];
+        if (session.access_token) parts.push(`access_token=${encodeURIComponent(session.access_token)}`);
+        if (session.refresh_token) parts.push(`refresh_token=${encodeURIComponent(session.refresh_token)}`);
+        if (session.expires_at) parts.push(`expires_at=${encodeURIComponent(session.expires_at)}`);
+        if (session.token_type) parts.push(`token_type=${encodeURIComponent(session.token_type)}`);
+        return parts.join("&");
+      }
+
+      function appendHash(url, hash) {
+        if (!hash) return url;
+        if (url.indexOf("#") >= 0) {
+          return `${url}&${hash}`;
+        }
+        return `${url}#${hash}`;
       }
 
       async function signIn() {
