@@ -127,9 +127,14 @@
             return;
           }
           storeSession(await res.json());
+          if (!session?.access_token) {
+            authStatus.textContent = "Sign in failed: invalid session response.";
+            return;
+          }
           updateSessionUI();
           authStatus.textContent = "Signed in. Redirecting to dashboard...";
-          setTimeout(() => { window.location.replace("billing.html"); }, 250);
+          const dashboardUrl = new URL("billing.html?v=12", window.location.href).toString();
+          setTimeout(() => { window.location.replace(dashboardUrl); }, 250);
         } finally {
           setAuthLoading(false);
         }
@@ -169,7 +174,10 @@
         });
       });
 
-      loginBtn.addEventListener("click", signIn);
+      loginBtn.addEventListener("click", (event) => {
+        event.preventDefault();
+        signIn();
+      });
       signupBtn.addEventListener("click", signUp);
       passwordEl.addEventListener("keydown", (event) => {
         if (event.key === "Enter") signIn();
@@ -181,7 +189,8 @@
       loadSession();
       updateSessionUI();
       if (session?.access_token) {
-        window.location.replace("billing.html");
+        const dashboardUrl = new URL("billing.html?v=12", window.location.href).toString();
+        window.location.replace(dashboardUrl);
         return;
       }
 

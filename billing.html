@@ -241,7 +241,8 @@
       loadSession();
       updateSessionUI();
       if (!session?.access_token) {
-        window.location.replace("app.html");
+        const signInUrl = new URL("app.html?v=12", window.location.href).toString();
+        window.location.replace(signInUrl);
         return;
       } else {
         setBillingLocked(false);
