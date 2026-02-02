@@ -112,6 +112,17 @@
       function hasSessionToken() {
         return !!(session && session.access_token);
       }
+      function storeSession(next) {
+        session = next;
+        if (next) {
+          const serialized = JSON.stringify(next);
+          localStorage.setItem("wp_session", serialized);
+          sessionStorage.setItem("wp_session", serialized);
+        } else {
+          localStorage.removeItem("wp_session");
+          sessionStorage.removeItem("wp_session");
+        }
+      }
       const params = new URLSearchParams(window.location.search);
       const requestedPackId = params.get("pack_id");
 
@@ -170,6 +181,42 @@
         logoutBtn.style.display = signedIn ? "inline-flex" : "none";
       }
 
+      function isSessionNearExpiry() {
+        if (!session || !session.expires_at) return false;
+        const now = Math.floor(Date.now() / 1000);
+        return now >= (session.expires_at - 45);
+      }
+
+      async function refreshSession() {
+        if (!session || !session.refresh_token) return false;
+        try {
+          const res = await fetch(`${SUPABASE_URL}/auth/v1/token?grant_type=refresh_token`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              apikey: SUPABASE_ANON_KEY
+            },
+            body: JSON.stringify({ refresh_token: session.refresh_token })
+          });
+          if (!res.ok) return false;
+          const next = await res.json();
+          if (!next || !next.access_token) return false;
+          storeSession(next);
+          updateSessionUI();
+          return true;
+        } catch {
+          return false;
+        }
+      }
+
+      async function ensureFreshSession() {
+        if (!hasSessionToken()) return false;
+        if (isSessionNearExpiry()) {
+          return await refreshSession();
+        }
+        return true;
+      }
+
       function loadSettings() {
         settingsName.value = localStorage.getItem("wp_settings_name") || "";
         settingsEmails.checked = localStorage.getItem("wp_settings_emails") === "1";
@@ -185,11 +232,18 @@
         settingsStatus.textContent = "Settings saved.";
       }
 
-      async function supabaseRequest(path, options) {
+      async function supabaseRequest(path, options, retry = true) {
         const headers = options.headers || {};
         headers["apikey"] = SUPABASE_ANON_KEY;
         if (hasSessionToken()) headers["Authorization"] = `Bearer ${session.access_token}`;
-        return fetch(`${SUPABASE_URL}${path}`, { ...options, headers });
+        const response = await fetch(`${SUPABASE_URL}${path}`, { ...options, headers });
+        if (response.status === 401 && retry && session && session.refresh_token) {
+          const refreshed = await refreshSession();
+          if (refreshed) {
+            return supabaseRequest(path, options, false);
+          }
+        }
+        return response;
       }
 
       async function remoteSignOut() {
@@ -201,6 +255,7 @@
 
       async function refreshCredits() {
         if (!hasSessionToken()) return;
+        await ensureFreshSession();
         billingStatus.textContent = "Refreshing...";
         const userRes = await supabaseRequest("/auth/v1/user", { method: "GET" });
         if (!userRes.ok) {
@@ -228,6 +283,13 @@
           billingStatus.textContent = "Sign in required before checkout. Redirecting...";
           const targetBilling = packId ? `billing.html?pack_id=${encodeURIComponent(packId)}` : "billing.html";
           navigateWithFade(`app.html?next=${encodeURIComponent(targetBilling)}`);
+          return;
+        }
+        const fresh = await ensureFreshSession();
+        if (!fresh) {
+          billingStatus.textContent = "Session expired. Please sign in again.";
+          setBillingLocked(true);
+          navigateWithFade("app.html?signed_out=1");
           return;
         }
         buyButtons.forEach((btn) => btn.classList.toggle("is-selected", btn.dataset.pack === packId));
@@ -273,6 +335,13 @@
           navigateWithFade("app.html?next=billing.html");
           return;
         }
+        const fresh = await ensureFreshSession();
+        if (!fresh) {
+          billingStatus.textContent = "Session expired. Please sign in again.";
+          setBillingLocked(true);
+          navigateWithFade("app.html?signed_out=1");
+          return;
+        }
         billingStatus.textContent = "Opening portal...";
         try {
           const res = await supabaseRequest(`/functions/v1/${FN_PORTAL}`, {
@@ -306,9 +375,7 @@
 
       async function signOut() {
         await remoteSignOut();
-        localStorage.removeItem("wp_session");
-        sessionStorage.removeItem("wp_session");
-        session = null;
+        storeSession(null);
         setBillingLocked(true);
         updateSessionUI();
         authState.textContent = "Signed out. Please sign in to continue.";
@@ -328,24 +395,37 @@
       loadSession();
       loadSettings();
       updateSessionUI();
-      if (!hasSessionToken()) {
-        const targetBilling = requestedPackId
-          ? `billing.html?pack_id=${encodeURIComponent(requestedPackId)}`
-          : "billing.html";
-        const signInUrl = new URL(`app.html?next=${encodeURIComponent(targetBilling)}`, window.location.href).toString();
-        window.location.replace(signInUrl);
-      } else {
+      (async function initBilling() {
+        if (!hasSessionToken()) {
+          const targetBilling = requestedPackId
+            ? `billing.html?pack_id=${encodeURIComponent(requestedPackId)}`
+            : "billing.html";
+          const signInUrl = new URL(`app.html?next=${encodeURIComponent(targetBilling)}`, window.location.href).toString();
+          window.location.replace(signInUrl);
+          return;
+        }
+
+        const fresh = await ensureFreshSession();
+        if (!fresh) {
+          const targetBilling = requestedPackId
+            ? `billing.html?pack_id=${encodeURIComponent(requestedPackId)}`
+            : "billing.html";
+          const signInUrl = new URL(`app.html?signed_out=1&next=${encodeURIComponent(targetBilling)}`, window.location.href).toString();
+          window.location.replace(signInUrl);
+          return;
+        }
+
         setBillingLocked(false);
         authState.textContent = "Signed in.";
         markRequestedPack();
-        refreshCredits();
-      }
+        await refreshCredits();
 
-      const checkoutParams = new URLSearchParams(window.location.search);
-      if (checkoutParams.get("checkout") === "success") {
-        billingStatus.textContent = "Purchase complete. Refreshing credits...";
-        refreshCredits();
-      }
+        const checkoutParams = new URLSearchParams(window.location.search);
+        if (checkoutParams.get("checkout") === "success") {
+          billingStatus.textContent = "Purchase complete. Refreshing credits...";
+          await refreshCredits();
+        }
+      })();
     </script>
   </body>
 </html>
