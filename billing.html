@@ -65,6 +65,7 @@
           <h3>ACCOUNT SETTINGS</h3>
           <p>Simple settings you can control from the web dashboard.</p>
           <div class="form-stack">
+            <input class="input" id="settings-email" type="email" placeholder="Account email for billing" />
             <input class="input" id="settings-name" type="text" placeholder="Display name" />
             <label class="agree">
               <input type="checkbox" id="settings-emails" />
@@ -124,6 +125,7 @@
       const signinLink = document.getElementById("signin-link");
       const logoutBtn = document.getElementById("logout");
       const settingsName = document.getElementById("settings-name");
+      const settingsEmail = document.getElementById("settings-email");
       const settingsEmails = document.getElementById("settings-emails");
       const settingsReducedMotion = document.getElementById("settings-reduced-motion");
       const settingsAutoRefresh = document.getElementById("settings-auto-refresh");
@@ -291,6 +293,7 @@
 
       function loadSettings() {
         try {
+          if (settingsEmail) settingsEmail.value = localStorage.getItem("wp_settings_email") || "";
           if (settingsName) settingsName.value = localStorage.getItem("wp_settings_name") || "";
           if (settingsEmails) settingsEmails.checked = localStorage.getItem("wp_settings_emails") === "1";
           if (settingsReducedMotion) settingsReducedMotion.checked = localStorage.getItem("wp_settings_reduced_motion") === "1";
@@ -306,6 +309,7 @@
 
       function saveSettings() {
         try {
+          localStorage.setItem("wp_settings_email", settingsEmail ? settingsEmail.value.trim().toLowerCase() : "");
           localStorage.setItem("wp_settings_name", settingsName ? settingsName.value.trim() : "");
           localStorage.setItem("wp_settings_emails", settingsEmails && settingsEmails.checked ? "1" : "0");
           localStorage.setItem("wp_settings_reduced_motion", settingsReducedMotion && settingsReducedMotion.checked ? "1" : "0");
@@ -323,8 +327,9 @@
 
       async function startCheckout(packId) {
         ingestSessionFromHash();
-        if (!hasSessionToken()) {
-          billingStatus.textContent = "Sign in required before checkout. Redirecting...";
+        const emailFallback = settingsEmail ? settingsEmail.value.trim().toLowerCase() : "";
+        if (!hasSessionToken() && !emailFallback) {
+          billingStatus.textContent = "Sign in required before checkout. Add your account email in settings or sign in.";
           const targetBilling = packId ? `billing.html?pack_id=${encodeURIComponent(packId)}` : "billing.html";
           navigateWithFade(`app.html?next=${encodeURIComponent(targetBilling)}`);
           return;
@@ -333,12 +338,14 @@
           billingStatus.textContent = "Checkout canceled.";
           return;
         }
-        const fresh = await ensureFreshSession();
-        if (!fresh) {
-          billingStatus.textContent = "Session expired. Please sign in again.";
-          setBillingLocked(true);
-          navigateWithFade("app.html?signed_out=1");
-          return;
+        if (hasSessionToken()) {
+          const fresh = await ensureFreshSession();
+          if (!fresh) {
+            billingStatus.textContent = "Session expired. Please sign in again.";
+            setBillingLocked(true);
+            navigateWithFade("app.html?signed_out=1");
+            return;
+          }
         }
         buyButtons.forEach((btn) => btn.classList.toggle("is-selected", btn.dataset.pack === packId));
         billingStatus.textContent = "Opening checkout...";
@@ -346,7 +353,11 @@
           const res = await supabaseRequest(`/functions/v1/${FN_CREATE_CHECKOUT}`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ pack_id: packId, access_token: session && session.access_token ? session.access_token : "" })
+            body: JSON.stringify({
+              pack_id: packId,
+              access_token: session && session.access_token ? session.access_token : "",
+              email: emailFallback
+            })
           });
           if (!res.ok) {
             let detail = "";
@@ -436,24 +447,30 @@
       }
 
       async function openPortal() {
-        if (!hasSessionToken()) {
-          billingStatus.textContent = "Sign in required before opening portal.";
+        const emailFallback = settingsEmail ? settingsEmail.value.trim().toLowerCase() : "";
+        if (!hasSessionToken() && !emailFallback) {
+          billingStatus.textContent = "Sign in required before opening portal. Add your account email in settings or sign in.";
           navigateWithFade("app.html?next=billing.html");
           return;
         }
-        const fresh = await ensureFreshSession();
-        if (!fresh) {
-          billingStatus.textContent = "Session expired. Please sign in again.";
-          setBillingLocked(true);
-          navigateWithFade("app.html?signed_out=1");
-          return;
+        if (hasSessionToken()) {
+          const fresh = await ensureFreshSession();
+          if (!fresh) {
+            billingStatus.textContent = "Session expired. Please sign in again.";
+            setBillingLocked(true);
+            navigateWithFade("app.html?signed_out=1");
+            return;
+          }
         }
         billingStatus.textContent = "Opening portal...";
         try {
           const res = await supabaseRequest(`/functions/v1/${FN_PORTAL}`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ access_token: session && session.access_token ? session.access_token : "" })
+            body: JSON.stringify({
+              access_token: session && session.access_token ? session.access_token : "",
+              email: emailFallback
+            })
           });
           if (!res.ok) {
             let detail = "";
@@ -517,21 +534,18 @@
       updateSessionUI();
       (async function initBilling() {
         if (!hasSessionToken()) {
-          const targetBilling = requestedPackId
-            ? `billing.html?pack_id=${encodeURIComponent(requestedPackId)}`
-            : "billing.html";
-          const signInUrl = new URL(`app.html?next=${encodeURIComponent(targetBilling)}`, window.location.href).toString();
-          window.location.replace(signInUrl);
+          setBillingLocked(true);
+          authState.textContent = "Not signed in. Sign in or add your account email to continue.";
+          markRequestedPack();
+          billingStatus.textContent = "Sign in to unlock automatic credit refresh.";
           return;
         }
 
         const valid = await validateSession();
         if (!valid) {
-          const targetBilling = requestedPackId
-            ? `billing.html?pack_id=${encodeURIComponent(requestedPackId)}`
-            : "billing.html";
-          const signInUrl = new URL(`app.html?signed_out=1&next=${encodeURIComponent(targetBilling)}`, window.location.href).toString();
-          window.location.replace(signInUrl);
+          setBillingLocked(true);
+          authState.textContent = "Session expired. Please sign in again.";
+          billingStatus.textContent = "Session expired. Please sign in again.";
           return;
         }
 
