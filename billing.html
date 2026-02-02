@@ -243,27 +243,35 @@
       }
 
       function loadSettings() {
-        settingsName.value = localStorage.getItem("wp_settings_name") || "";
-        settingsEmails.checked = localStorage.getItem("wp_settings_emails") === "1";
-        settingsReducedMotion.checked = localStorage.getItem("wp_settings_reduced_motion") === "1";
-        settingsAutoRefresh.checked = localStorage.getItem("wp_settings_auto_refresh") !== "0";
-        settingsConfirmCheckout.checked = localStorage.getItem("wp_settings_confirm_checkout") !== "0";
-        settingsOpenNewTab.checked = localStorage.getItem("wp_settings_open_new_tab") === "1";
-        settingsPreferredPack.value = localStorage.getItem("wp_settings_preferred_pack") || "";
-        document.body.classList.toggle("reduced-motion", settingsReducedMotion.checked);
+        try {
+          if (settingsName) settingsName.value = localStorage.getItem("wp_settings_name") || "";
+          if (settingsEmails) settingsEmails.checked = localStorage.getItem("wp_settings_emails") === "1";
+          if (settingsReducedMotion) settingsReducedMotion.checked = localStorage.getItem("wp_settings_reduced_motion") === "1";
+          if (settingsAutoRefresh) settingsAutoRefresh.checked = localStorage.getItem("wp_settings_auto_refresh") !== "0";
+          if (settingsConfirmCheckout) settingsConfirmCheckout.checked = localStorage.getItem("wp_settings_confirm_checkout") !== "0";
+          if (settingsOpenNewTab) settingsOpenNewTab.checked = localStorage.getItem("wp_settings_open_new_tab") === "1";
+          if (settingsPreferredPack) settingsPreferredPack.value = localStorage.getItem("wp_settings_preferred_pack") || "";
+          document.body.classList.toggle("reduced-motion", !!(settingsReducedMotion && settingsReducedMotion.checked));
+        } catch {
+          if (settingsStatus) settingsStatus.textContent = "Could not load settings in this browser mode.";
+        }
       }
 
       function saveSettings() {
-        localStorage.setItem("wp_settings_name", settingsName.value.trim());
-        localStorage.setItem("wp_settings_emails", settingsEmails.checked ? "1" : "0");
-        localStorage.setItem("wp_settings_reduced_motion", settingsReducedMotion.checked ? "1" : "0");
-        localStorage.setItem("wp_settings_auto_refresh", settingsAutoRefresh.checked ? "1" : "0");
-        localStorage.setItem("wp_settings_confirm_checkout", settingsConfirmCheckout.checked ? "1" : "0");
-        localStorage.setItem("wp_settings_open_new_tab", settingsOpenNewTab.checked ? "1" : "0");
-        localStorage.setItem("wp_settings_preferred_pack", settingsPreferredPack.value);
-        document.body.classList.toggle("reduced-motion", settingsReducedMotion.checked);
-        markRequestedPack();
-        settingsStatus.textContent = "Settings saved.";
+        try {
+          localStorage.setItem("wp_settings_name", settingsName ? settingsName.value.trim() : "");
+          localStorage.setItem("wp_settings_emails", settingsEmails && settingsEmails.checked ? "1" : "0");
+          localStorage.setItem("wp_settings_reduced_motion", settingsReducedMotion && settingsReducedMotion.checked ? "1" : "0");
+          localStorage.setItem("wp_settings_auto_refresh", settingsAutoRefresh && settingsAutoRefresh.checked ? "1" : "0");
+          localStorage.setItem("wp_settings_confirm_checkout", settingsConfirmCheckout && settingsConfirmCheckout.checked ? "1" : "0");
+          localStorage.setItem("wp_settings_open_new_tab", settingsOpenNewTab && settingsOpenNewTab.checked ? "1" : "0");
+          localStorage.setItem("wp_settings_preferred_pack", settingsPreferredPack ? settingsPreferredPack.value : "");
+          document.body.classList.toggle("reduced-motion", !!(settingsReducedMotion && settingsReducedMotion.checked));
+          markRequestedPack();
+          if (settingsStatus) settingsStatus.textContent = "Settings saved.";
+        } catch {
+          if (settingsStatus) settingsStatus.textContent = "Settings could not be saved (browser blocked storage).";
+        }
       }
 
       async function supabaseRequest(path, options, retry = true) {
@@ -435,10 +443,12 @@
       portalButton.addEventListener("click", openPortal);
       refreshButton.addEventListener("click", refreshCredits);
       document.getElementById("logout").addEventListener("click", signOut);
-      settingsSave.addEventListener("click", saveSettings);
-      settingsReducedMotion.addEventListener("change", () => {
-        document.body.classList.toggle("reduced-motion", settingsReducedMotion.checked);
-      });
+      if (settingsSave) settingsSave.addEventListener("click", saveSettings);
+      if (settingsReducedMotion) {
+        settingsReducedMotion.addEventListener("change", () => {
+          document.body.classList.toggle("reduced-motion", settingsReducedMotion.checked);
+        });
+      }
 
       loadSession();
       loadSettings();
