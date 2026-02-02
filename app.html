@@ -1,0 +1,278 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Writer Pro — Account</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <header class="hero">
+      <nav class="nav">
+        <div class="logo">WRITER PRO</div>
+        <div class="nav-actions">
+          <a class="btn btn-outline" href="index.html">HOME</a>
+          <a class="btn btn-outline" href="index.html#features">FEATURES</a>
+          <a class="btn btn-primary" href="#account">ACCOUNT</a>
+        </div>
+      </nav>
+
+      <div class="hero-grid">
+        <div class="hero-copy">
+          <h1>ACCOUNT</h1>
+          <p class="subtitle">Sign in to manage credits and subscriptions.</p>
+        </div>
+      </div>
+    </header>
+
+    <section class="section" id="account">
+      <div class="account-grid">
+        <div class="card">
+          <h3>LOGIN</h3>
+          <p>Use the same email you use on the Mac app.</p>
+          <div class="form-stack">
+            <input class="input" id="email" type="email" placeholder="Email" />
+            <input class="input" id="password" type="password" placeholder="Password" />
+            <button class="btn btn-primary" id="login">
+              <span>Sign In</span>
+              <span class="mini-spinner" id="auth-spinner" aria-hidden="true"></span>
+            </button>
+            <button class="btn btn-outline" id="signup">Create Account</button>
+            <button class="btn btn-outline" id="logout">Sign Out</button>
+            <p class="notice" id="auth-status"></p>
+          </div>
+        </div>
+
+        <div class="card">
+          <h3>CREDITS</h3>
+          <p>See your current balance and purchase more credits.</p>
+          <div class="credit-balance" id="credits">Balance: —</div>
+          <div class="pricing-grid">
+            <button class="btn btn-outline buy" data-pack="credits_65_monthly">Monthly 65 • $4.99 CAD</button>
+            <button class="btn btn-outline buy" data-pack="credits_100">Buy 100 • $9.99 CAD</button>
+            <button class="btn btn-outline buy" data-pack="credits_180_monthly">Monthly 180 • $11.99 CAD</button>
+            <button class="btn btn-outline buy" data-pack="credits_220">Buy 220 • $19.99 CAD</button>
+            <button class="btn btn-outline buy" data-pack="credits_430_monthly">Monthly 430 • $24.99 CAD</button>
+          </div>
+          <div class="cta-row" style="margin-top: 12px;">
+            <button class="btn btn-primary" id="refresh">Refresh Credits</button>
+            <button class="btn btn-outline" id="portal">Manage Subscription</button>
+          </div>
+          <p class="notice" id="billing-status"></p>
+        </div>
+      </div>
+    </section>
+
+    <footer class="footer">
+      <div class="footer-links">
+        <a href="terms.html">Terms</a>
+        <a href="privacy.html">Privacy</a>
+      </div>
+    </footer>
+
+    <script>
+      // TODO: Fill in your Supabase project URL and anon public key.
+      const SUPABASE_URL = "https://vnzlaidwxgiaowhxtuvi.supabase.co";
+      const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZuemxhaWR3eGdpYW93aHh0dXZpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg4MjcwNzksImV4cCI6MjA4NDQwMzA3OX0.AKiGX3xbgMKtUFYxHKEaAKwacFqmjPEsy56ofU1eDQQ";
+
+      // Edge function endpoints (same ones used in the mac app)
+      const FN_CREATE_CHECKOUT = "create-checkout-session";
+      const FN_PORTAL = "create-portal-session";
+      const FN_REFRESH_PROFILE = "fetch-profile";
+
+      const emailEl = document.getElementById("email");
+      const passwordEl = document.getElementById("password");
+      const authStatus = document.getElementById("auth-status");
+      const billingStatus = document.getElementById("billing-status");
+      const creditsEl = document.getElementById("credits");
+      const logoutBtn = document.getElementById("logout");
+      const authSpinner = document.getElementById("auth-spinner");
+      const loginBtn = document.getElementById("login");
+      const signupBtn = document.getElementById("signup");
+
+      let session = null;
+      let toastTimeout = null;
+
+      function storeSession(next) {
+        session = next;
+        if (next) {
+          localStorage.setItem("wp_session", JSON.stringify(next));
+        } else {
+          localStorage.removeItem("wp_session");
+        }
+      }
+
+      function loadSession() {
+        try {
+          const raw = localStorage.getItem("wp_session");
+          if (raw) {
+            session = JSON.parse(raw);
+          }
+        } catch {
+          session = null;
+        }
+      }
+
+      async function supabaseRequest(path, options) {
+        const headers = options.headers || {};
+        headers["apikey"] = SUPABASE_ANON_KEY;
+        if (session?.access_token) {
+          headers["Authorization"] = `Bearer ${session.access_token}`;
+        }
+        return fetch(`${SUPABASE_URL}${path}`, { ...options, headers });
+      }
+
+      async function signIn() {
+        setAuthLoading(true);
+        authStatus.textContent = "Signing in...";
+        try {
+          const res = await supabaseRequest("/auth/v1/token?grant_type=password", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ email: emailEl.value, password: passwordEl.value })
+          });
+          if (!res.ok) {
+            authStatus.textContent = "Sign in failed.";
+            return;
+          }
+          storeSession(await res.json());
+          authStatus.textContent = "Signed in.";
+          await refreshCredits();
+        } finally {
+          setAuthLoading(false);
+        }
+      }
+
+      async function signUp() {
+        setAuthLoading(true);
+        authStatus.textContent = "Creating account...";
+        try {
+          const res = await supabaseRequest("/auth/v1/signup", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ email: emailEl.value, password: passwordEl.value })
+          });
+          if (!res.ok) {
+            authStatus.textContent = "Sign up failed.";
+            return;
+          }
+          authStatus.textContent = "Account created. Check your email.";
+          showToast("Account created. Check your email.");
+        } finally {
+          setAuthLoading(false);
+        }
+      }
+
+      async function refreshCredits() {
+        if (!session?.access_token) {
+          creditsEl.textContent = "Balance: —";
+          return;
+        }
+        billingStatus.textContent = "Refreshing...";
+        const userRes = await supabaseRequest("/auth/v1/user", { method: "GET" });
+        if (!userRes.ok) {
+          billingStatus.textContent = "Failed to load profile.";
+          return;
+        }
+        const user = await userRes.json();
+        const email = user?.email;
+        if (!email) {
+          billingStatus.textContent = "No email on profile.";
+          return;
+        }
+        const res = await supabaseRequest(`/rest/v1/profiles?select=credits,email,is_admin&email=eq.${encodeURIComponent(email)}`, {
+          method: "GET",
+          headers: { "Content-Type": "application/json" }
+        });
+        if (!res.ok) {
+          billingStatus.textContent = "Failed to load credits.";
+          return;
+        }
+        const data = await res.json();
+        const credits = data?.[0]?.credits ?? 0;
+        creditsEl.textContent = `Balance: ${credits}`;
+        billingStatus.textContent = "";
+      }
+
+      async function startCheckout(packId) {
+        if (!session?.access_token) {
+          showToast("Please sign in first.");
+          return;
+        }
+        billingStatus.textContent = "Opening checkout...";
+        const res = await supabaseRequest(`/functions/v1/${FN_CREATE_CHECKOUT}`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ pack_id: packId })
+        });
+        if (!res.ok) {
+          billingStatus.textContent = "Checkout failed.";
+          return;
+        }
+        const payload = await res.json();
+        window.location.href = payload.url;
+      }
+
+      async function openPortal() {
+        if (!session?.access_token) {
+          showToast("Please sign in first.");
+          return;
+        }
+        billingStatus.textContent = "Opening portal...";
+        const res = await supabaseRequest(`/functions/v1/${FN_PORTAL}`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({})
+        });
+        if (!res.ok) {
+          billingStatus.textContent = "Portal failed.";
+          return;
+        }
+        const payload = await res.json();
+        window.location.href = payload.url;
+      }
+
+      function showToast(message) {
+        billingStatus.textContent = message;
+        if (toastTimeout) clearTimeout(toastTimeout);
+        toastTimeout = setTimeout(() => {
+          billingStatus.textContent = "";
+        }, 3500);
+      }
+
+      async function signOut() {
+        storeSession(null);
+        creditsEl.textContent = "Balance: —";
+        authStatus.textContent = "Signed out.";
+      }
+
+      function setAuthLoading(isLoading) {
+        authSpinner.classList.toggle("active", isLoading);
+        loginBtn.disabled = isLoading;
+        signupBtn.disabled = isLoading;
+      }
+
+      document.getElementById("login").addEventListener("click", signIn);
+      document.getElementById("signup").addEventListener("click", signUp);
+      document.getElementById("refresh").addEventListener("click", refreshCredits);
+      document.getElementById("portal").addEventListener("click", openPortal);
+      document.getElementById("logout").addEventListener("click", signOut);
+
+      document.querySelectorAll(".buy").forEach((btn) => {
+        btn.addEventListener("click", () => startCheckout(btn.dataset.pack));
+      });
+
+      loadSession();
+      if (session?.access_token) {
+        refreshCredits();
+        authStatus.textContent = "Signed in.";
+      }
+
+      const params = new URLSearchParams(window.location.search);
+      if (params.get("checkout") === "success") {
+        showToast("Purchase complete. Refreshing credits...");
+        refreshCredits();
+      }
+    </script>
+  </body>
+</html>
