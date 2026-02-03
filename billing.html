@@ -39,7 +39,6 @@
           </div>
           <div class="cta-row" style="margin-top: 6px;">
             <a class="btn btn-primary page-link" href="app.html" id="signin-link">Sign In</a>
-            <button class="btn btn-outline" id="logout">Sign Out</button>
           </div>
           <p class="notice" id="billing-status"></p>
         </div>
@@ -110,7 +109,6 @@
       const refreshButton = document.getElementById("refresh");
       const navAuthBtn = document.getElementById("nav-auth");
       const signinLink = document.getElementById("signin-link");
-      const logoutBtn = document.getElementById("logout");
       const accountEmail = document.getElementById("account-email");
       const currentPassword = document.getElementById("current-password");
       const newPassword = document.getElementById("new-password");
@@ -220,7 +218,6 @@
         navAuthBtn.textContent = signedIn ? "SIGN OUT" : "SIGN IN";
         navAuthBtn.setAttribute("href", signedIn ? "#" : "app.html");
         signinLink.style.display = signedIn ? "none" : "inline-flex";
-        logoutBtn.style.display = signedIn ? "inline-flex" : "none";
       }
 
       function isSessionNearExpiry() {
@@ -530,7 +527,6 @@
       buyButtons.forEach((btn) => btn.addEventListener("click", () => startCheckout(btn.dataset.pack)));
       portalButton.addEventListener("click", openPortal);
       refreshButton.addEventListener("click", refreshCredits);
-      document.getElementById("logout").addEventListener("click", signOut);
       if (settingsSave) settingsSave.addEventListener("click", saveSettings);
       if (togglePassword && passwordPanel) {
         togglePassword.addEventListener("click", () => {
