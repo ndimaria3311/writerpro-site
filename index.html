@@ -233,7 +233,9 @@
       <h2>DEMO</h2>
       <div class="card demo-card">
         <div class="demo-frame">
-          <div class="demo-placeholder">Add a short app demo video or GIF</div>
+          <div class="demo-typing" aria-live="polite">
+            <span id="demo-typed"></span><span class="demo-cursor" aria-hidden="true"></span>
+          </div>
         </div>
       </div>
     </section>
@@ -342,6 +344,52 @@
         });
       }, { threshold: 0.18, rootMargin: "0px 0px -10% 0px" });
       revealTargets.forEach((el) => observer.observe(el));
+
+      const demoText = [
+        "Title: The Impact of Renewable Energy on Modern Cities",
+        "Intro: Renewable energy is reshaping urban infrastructure and sustainability.",
+        "Point 1: Solar adoption cuts emissions while lowering long‑term costs.",
+        "Point 2: Wind and hydro diversify grids for resilient city power.",
+        "Conclusion: Clean energy makes cities healthier and more future‑ready."
+      ];
+
+      function startDemoTyping() {
+        const el = document.getElementById("demo-typed");
+        if (!el) return;
+        const prefersReduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+        if (prefersReduce) {
+          el.textContent = demoText.join("\n");
+          return;
+        }
+        let line = 0;
+        let index = 0;
+        let deleting = false;
+        const speed = 28;
+        const pause = 900;
+
+        function tick() {
+          const current = demoText[line];
+          if (!deleting) {
+            el.textContent = current.slice(0, index + 1);
+            index += 1;
+            if (index >= current.length) {
+              deleting = true;
+              setTimeout(tick, pause);
+              return;
+            }
+          } else {
+            el.textContent = current.slice(0, index - 1);
+            index -= 1;
+            if (index <= 0) {
+              deleting = false;
+              line = (line + 1) % demoText.length;
+            }
+          }
+          setTimeout(tick, deleting ? speed / 1.4 : speed);
+        }
+        tick();
+      }
+      startDemoTyping();
 
     </script>
   </body>
