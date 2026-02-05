@@ -98,6 +98,21 @@
             </div>
           </div>
 
+          <div class="admin-referral">
+            <div>
+              <span class="label">Referral link</span>
+              <div class="admin-referral-row">
+                <input class="input input-compact" id="admin-referral-link" type="text" readonly />
+                <button class="btn btn-outline btn-compact" id="admin-copy-referral">Copy</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="admin-onboarding">
+            <span class="label">Onboarding summary</span>
+            <div class="admin-onboarding-grid" id="admin-onboarding-summary"></div>
+          </div>
+
           <div class="form-stack">
             <div class="two-col">
               <input class="input" id="admin-email" type="email" placeholder="Account email" />
@@ -164,6 +179,9 @@
       const userReferredEl = document.getElementById("admin-user-referred");
       const userCreatedEl = document.getElementById("admin-user-created");
       const userLastEl = document.getElementById("admin-user-last");
+      const referralLinkEl = document.getElementById("admin-referral-link");
+      const referralCopyEl = document.getElementById("admin-copy-referral");
+      const onboardingSummaryEl = document.getElementById("admin-onboarding-summary");
 
       const emailEl = document.getElementById("admin-email");
       const emailSetEl = document.getElementById("admin-email-set");
@@ -245,6 +263,37 @@
         return date.toLocaleString();
       }
 
+      function buildReferralLink(code) {
+        if (!code) return "";
+        const base = `${window.location.origin}${window.location.pathname.replace("admin.html", "app.html")}`;
+        return `${base}?ref=${encodeURIComponent(code)}`;
+      }
+
+      function renderOnboardingSummary(data) {
+        onboardingSummaryEl.innerHTML = "";
+        if (!data || Object.keys(data).length === 0) {
+          onboardingSummaryEl.innerHTML = "<span class=\"subtle\">No onboarding data yet.</span>";
+          return;
+        }
+        const fields = [
+          ["Role", data.role],
+          ["Focus", data.focus],
+          ["Subjects", Array.isArray(data.subjects) ? data.subjects.join(", ") : ""],
+          ["Deadline", data.deadline],
+          ["Volume", data.volume],
+          ["Tone", data.tone],
+          ["AI Comfort", data.ai_comfort],
+          ["Devices", Array.isArray(data.devices) ? data.devices.join(", ") : ""],
+        ];
+        fields.forEach(([label, value]) => {
+          if (!value) return;
+          const item = document.createElement("div");
+          item.className = "admin-onboarding-item";
+          item.innerHTML = `<span>${label}</span><strong>${value}</strong>`;
+          onboardingSummaryEl.appendChild(item);
+        });
+      }
+
       function setUserDetails(data) {
         userIdEl.textContent = data.id ? `ID: ${data.id}` : "No user loaded";
         userCreditsEl.textContent = typeof data.credits === "number" ? data.credits.toLocaleString() : "—";
@@ -254,6 +303,7 @@
         userReferredEl.textContent = data.referred_by || "—";
         userCreatedEl.textContent = formatDate(data.created_at);
         userLastEl.textContent = formatDate(data.last_sign_in_at);
+        referralLinkEl.value = buildReferralLink(data.referral_code);
         emailEl.value = data.email || "";
         emailSetEl.value = "";
         referralSetEl.value = data.referral_code || "";
@@ -265,6 +315,7 @@
         passEl.value = "";
         passConfirmEl.value = "";
         onboardingJsonEl.textContent = JSON.stringify(data.onboarding_data || {}, null, 2) || "—";
+        renderOnboardingSummary(data.onboarding_data || {});
       }
 
       async function searchUser() {
@@ -358,12 +409,22 @@
         }
       }
 
+      async function copyReferralLink() {
+        try {
+          await navigator.clipboard.writeText(referralLinkEl.value || "");
+          statusEl.textContent = "Referral link copied.";
+        } catch {
+          statusEl.textContent = "Copy failed.";
+        }
+      }
+
       savePasskeyEl.addEventListener("click", savePasskey);
       checkEl.addEventListener("click", ensureAdmin);
       searchEl.addEventListener("click", searchUser);
       submitEl.addEventListener("click", submitUpdate);
       resetEl.addEventListener("click", resetForm);
       copyOnboardingEl.addEventListener("click", copyOnboarding);
+      referralCopyEl.addEventListener("click", copyReferralLink);
 
       loadSession();
       const savedPasskey = getPasskey();

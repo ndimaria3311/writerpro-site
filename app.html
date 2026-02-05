@@ -461,6 +461,11 @@
 
       loadSession();
       updateSessionUI();
+      const refParam = new URLSearchParams(window.location.search).get("ref");
+      if (refParam) {
+        referralEl.value = refParam;
+        localStorage.setItem("wp_referral_pending", refParam);
+      }
       const params = new URLSearchParams(window.location.search);
       if (params.get("signed_out") === "1") {
         authStatus.textContent = "Signed out. Please sign in again.";
