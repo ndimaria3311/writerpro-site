@@ -318,15 +318,42 @@
       }
 
       async function signUp() {
+        const email = emailEl.value.trim();
+        const password = passwordEl.value;
+        if (!email || !password) {
+          authStatus.textContent = "Enter email and password.";
+          return;
+        }
+        if (!email.includes("@")) {
+          authStatus.textContent = "Enter a valid email address.";
+          return;
+        }
+        if (password.length < 8) {
+          authStatus.textContent = "Use a password with at least 8 characters.";
+          return;
+        }
         setAuthLoading(true);
         authStatus.textContent = "Creating account...";
         try {
           const res = await supabaseRequest("/auth/v1/signup", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ email: emailEl.value, password: passwordEl.value })
+            body: JSON.stringify({ email, password })
           });
-          authStatus.textContent = res.ok ? "Account created. Check your email." : "Sign up failed.";
+          if (!res.ok) {
+            authStatus.textContent = "Sign up failed.";
+            return;
+          }
+          localStorage.setItem("wp_new_signup", "1");
+          let payload = null;
+          try { payload = await res.json(); } catch {}
+          if (payload && payload.access_token) {
+            storeSession(payload);
+            authStatus.textContent = "Account created. Finishing setup...";
+            await afterAuthSuccess();
+          } else {
+            authStatus.textContent = "Account created. Check your email, then sign in.";
+          }
         } finally {
           setAuthLoading(false);
         }
@@ -381,13 +408,20 @@
 
       async function afterAuthSuccess() {
         const profile = await fetchProfile();
+        const newSignup = localStorage.getItem("wp_new_signup") === "1";
         if (profile && profile.onboarding_completed) {
+          localStorage.removeItem("wp_new_signup");
           await applyReferralIfNeeded();
           authStatus.textContent = "Signed in. Redirecting to dashboard...";
           goToBilling();
           return;
         }
-        toggleOnboarding(true);
+        if (newSignup) {
+          toggleOnboarding(true);
+        } else {
+          authStatus.textContent = "Signed in. Redirecting to dashboard...";
+          goToBilling();
+        }
       }
 
       onboardingForm.addEventListener("submit", async (event) => {
@@ -426,6 +460,7 @@
           await applyReferralIfNeeded();
           onboardingStatus.textContent = "Saved! Redirecting...";
           toggleOnboarding(false);
+          localStorage.removeItem("wp_new_signup");
           goToBilling();
         } catch (error) {
           onboardingStatus.textContent = `Save failed: ${error.message || "network error"}`;
