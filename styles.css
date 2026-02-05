@@ -886,6 +886,11 @@ a {
   border-radius: 16px;
 }
 
+.admin-card {
+  max-width: 720px;
+  margin: 0 auto;
+}
+
 .demo-cursor {
   display: inline-block;
   width: 8px;

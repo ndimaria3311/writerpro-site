@@ -1,0 +1,142 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="favicon-16.png">
+    <link rel="icon" type="image/png" sizes="64x64" href="favicon-64.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="512x512" href="favicon-512.png">
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Writer Pro — Admin</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body class="legal-page">
+    <header class="hero legal-hero">
+      <nav class="nav">
+        <a class="logo" href="index.html">WRITER PRO</a>
+        <div class="nav-actions">
+          <a class="btn btn-outline" href="index.html">HOME</a>
+          <a class="btn btn-outline" href="billing.html">BILLING</a>
+          <a class="btn btn-outline" href="support.html">SUPPORT</a>
+        </div>
+      </nav>
+      <div class="hero-grid legal-hero-grid">
+        <div class="hero-copy legal-hero-copy">
+          <h1>ADMIN DASHBOARD</h1>
+          <p class="subtitle">Restricted access — admin accounts only.</p>
+        </div>
+      </div>
+    </header>
+
+    <section class="section">
+      <div class="card admin-card">
+        <h3>Update User</h3>
+        <p class="subtle">Add credits or set subscription tier.</p>
+        <div class="form-stack">
+          <input class="input" id="admin-email" type="email" placeholder="User email" />
+          <div class="two-col">
+            <input class="input" id="admin-credits-add" type="number" placeholder="Credits to add" />
+            <input class="input" id="admin-credits-set" type="number" placeholder="Set credits (optional)" />
+          </div>
+          <select class="input" id="admin-tier">
+            <option value="">Keep current tier</option>
+            <option value="writer">Writer (65)</option>
+            <option value="study">Study (180)</option>
+            <option value="test">Test (430)</option>
+          </select>
+        </div>
+        <div class="cta-row" style="margin-top: 12px;">
+          <button class="btn btn-primary" id="admin-submit">Apply Changes</button>
+        </div>
+        <p class="notice" id="admin-status"></p>
+      </div>
+    </section>
+
+    <script>
+      const SUPABASE_URL = "https://vnzlaidwxgiaowhxtuvi.supabase.co";
+      const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZuemxhaWR3eGdpYW93aHh0dXZpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg4MjcwNzksImV4cCI6MjA4NDQwMzA3OX0.AKiGX3xbgMKtUFYxHKEaAKwacFqmjPEsy56ofU1eDQQ";
+      const statusEl = document.getElementById("admin-status");
+      const emailEl = document.getElementById("admin-email");
+      const addEl = document.getElementById("admin-credits-add");
+      const setEl = document.getElementById("admin-credits-set");
+      const tierEl = document.getElementById("admin-tier");
+      const submitEl = document.getElementById("admin-submit");
+
+      let session = null;
+      function loadSession() {
+        try {
+          const raw = localStorage.getItem("wp_session") || sessionStorage.getItem("wp_session");
+          if (raw) session = JSON.parse(raw);
+        } catch {
+          session = null;
+        }
+      }
+      function hasSessionToken() {
+        return !!(session && session.access_token);
+      }
+      async function getProfile() {
+        const res = await fetch(`${SUPABASE_URL}/rest/v1/profiles?id=eq.${session.user_id}&select=id,is_admin`, {
+          headers: {
+            apikey: SUPABASE_ANON_KEY,
+            Authorization: `Bearer ${session.access_token}`
+          }
+        });
+        if (!res.ok) return null;
+        const data = await res.json();
+        return data && data[0] ? data[0] : null;
+      }
+
+      async function ensureAdmin() {
+        if (!hasSessionToken()) {
+          window.location.href = "app.html?next=admin.html";
+          return false;
+        }
+        const profile = await getProfile();
+        if (!profile || !profile.is_admin) {
+          statusEl.textContent = "Access denied. Admin only.";
+          submitEl.disabled = true;
+          return false;
+        }
+        return true;
+      }
+
+      async function submitUpdate() {
+        statusEl.textContent = "Updating...";
+        const payload = {
+          email: (emailEl.value || "").trim().toLowerCase()
+        };
+        const add = parseInt(addEl.value || "", 10);
+        const set = parseInt(setEl.value || "", 10);
+        if (!Number.isNaN(add)) payload.credits_add = add;
+        if (!Number.isNaN(set)) payload.credits_set = set;
+        if (tierEl.value) payload.subscription_tier = tierEl.value;
+
+        try {
+          const res = await fetch("https://vnzlaidwxgiaowhxtuvi.functions.supabase.co/admin-update-user", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              apikey: SUPABASE_ANON_KEY,
+              Authorization: `Bearer ${session.access_token}`
+            },
+            body: JSON.stringify(payload)
+          });
+          const text = await res.text();
+          if (!res.ok) {
+            statusEl.textContent = `Update failed: ${text}`;
+            return;
+          }
+          const data = JSON.parse(text);
+          statusEl.textContent = `Updated ${data.email} → ${data.credits} credits, tier ${data.subscription_tier}`;
+        } catch (err) {
+          statusEl.textContent = `Update failed: ${err.message || "network error"}`;
+        }
+      }
+
+      submitEl.addEventListener("click", submitUpdate);
+      loadSession();
+      ensureAdmin();
+    </script>
+  </body>
+</html>
