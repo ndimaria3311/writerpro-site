@@ -42,6 +42,7 @@
           <div class="form-stack">
             <input class="input" id="email" type="email" placeholder="Email" autocomplete="email" />
             <input class="input" id="password" type="password" placeholder="Password" autocomplete="current-password" />
+            <input class="input" id="referral" type="text" placeholder="Referral code (optional)" />
             <button class="btn btn-primary" id="login">
               <span>Sign In</span>
               <span class="mini-spinner" id="auth-spinner" aria-hidden="true"></span>
@@ -52,6 +53,115 @@
         </div>
       </div>
     </section>
+
+    <div class="onboarding-overlay" id="onboarding-overlay" aria-hidden="true">
+      <div class="onboarding-card">
+        <div class="onboarding-head">
+          <h3>Tell us about your workflow</h3>
+          <p class="subtle">Personalize Writer Pro from day one.</p>
+        </div>
+        <form class="onboarding-form" id="onboarding-form">
+          <div class="two-col">
+            <label class="input">
+              <span>Primary role</span>
+              <select id="onb-role" required>
+                <option value="" disabled selected>Select one</option>
+                <option value="high_school">High school student</option>
+                <option value="college">College student</option>
+                <option value="university">University student</option>
+                <option value="graduate">Graduate / post-grad</option>
+                <option value="workforce">Workforce / professional</option>
+                <option value="educator">Educator</option>
+                <option value="other">Other</option>
+              </select>
+            </label>
+            <label class="input">
+              <span>Primary focus</span>
+              <select id="onb-focus" required>
+                <option value="" disabled selected>Select one</option>
+                <option value="essays">Essays</option>
+                <option value="research">Research papers</option>
+                <option value="study">Study / flashcards</option>
+                <option value="test_prep">Test prep</option>
+                <option value="work_docs">Work documents</option>
+                <option value="creative">Creative writing</option>
+              </select>
+            </label>
+          </div>
+
+          <label class="input">
+            <span>Subjects (select all that apply)</span>
+            <div class="chip-grid" id="onb-subjects">
+              <button type="button" class="chip">English</button>
+              <button type="button" class="chip">History</button>
+              <button type="button" class="chip">Science</button>
+              <button type="button" class="chip">Math</button>
+              <button type="button" class="chip">Business</button>
+              <button type="button" class="chip">Computer Science</button>
+              <button type="button" class="chip">Languages</button>
+              <button type="button" class="chip">Other</button>
+            </div>
+          </label>
+
+          <div class="two-col">
+            <label class="input">
+              <span>Typical deadline</span>
+              <select id="onb-deadline" required>
+                <option value="" disabled selected>Select one</option>
+                <option value="same_day">Same day</option>
+                <option value="few_days">Few days</option>
+                <option value="week_plus">A week+</option>
+              </select>
+            </label>
+            <label class="input">
+              <span>Writing volume / week</span>
+              <select id="onb-volume" required>
+                <option value="" disabled selected>Select one</option>
+                <option value="light">Light (1–2 tasks)</option>
+                <option value="moderate">Moderate (3–5 tasks)</option>
+                <option value="heavy">Heavy (6+ tasks)</option>
+              </select>
+            </label>
+          </div>
+
+          <div class="two-col">
+            <label class="input">
+              <span>Preferred tone</span>
+              <select id="onb-tone" required>
+                <option value="" disabled selected>Select one</option>
+                <option value="formal">Formal / academic</option>
+                <option value="balanced">Balanced</option>
+                <option value="conversational">Conversational</option>
+              </select>
+            </label>
+            <label class="input">
+              <span>AI comfort level</span>
+              <select id="onb-ai" required>
+                <option value="" disabled selected>Select one</option>
+                <option value="low">Low — I want heavy control</option>
+                <option value="medium">Medium — guide me</option>
+                <option value="high">High — auto-suggestions ok</option>
+              </select>
+            </label>
+          </div>
+
+          <label class="input">
+            <span>Primary device</span>
+            <div class="chip-grid" id="onb-device">
+              <button type="button" class="chip">MacBook</button>
+              <button type="button" class="chip">iMac</button>
+              <button type="button" class="chip">Mac mini</button>
+              <button type="button" class="chip">Other</button>
+            </div>
+          </label>
+
+          <div class="cta-row">
+            <button class="btn btn-primary" id="onb-submit" type="submit">Finish Setup</button>
+            <span class="notice" id="onb-status"></span>
+          </div>
+        </form>
+      </div>
+    </div>
 
     <footer class="footer">
       <div class="footer-links">
@@ -66,10 +176,15 @@
 
       const emailEl = document.getElementById("email");
       const passwordEl = document.getElementById("password");
+      const referralEl = document.getElementById("referral");
       const authStatus = document.getElementById("auth-status");
       const authSpinner = document.getElementById("auth-spinner");
       const loginBtn = document.getElementById("login");
       const signupBtn = document.getElementById("signup");
+      const onboardingOverlay = document.getElementById("onboarding-overlay");
+      const onboardingForm = document.getElementById("onboarding-form");
+      const onboardingStatus = document.getElementById("onb-status");
+      const onboardingSubmit = document.getElementById("onb-submit");
 
       let session = null;
       function hasSessionToken() {
@@ -189,8 +304,8 @@
             return;
           }
           updateSessionUI();
-          authStatus.textContent = "Signed in. Redirecting to dashboard...";
-          goToBilling();
+          authStatus.textContent = "Signed in. Checking your profile...";
+          await afterAuthSuccess();
         } catch (error) {
           authStatus.textContent = `Sign in failed: ${(error && error.message) || "network error"}`;
         } finally {
@@ -202,6 +317,8 @@
         setAuthLoading(true);
         authStatus.textContent = "Creating account...";
         try {
+          const referralCode = referralEl.value.trim();
+          if (referralCode) localStorage.setItem("wp_referral_pending", referralCode);
           const res = await supabaseRequest("/auth/v1/signup", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
@@ -212,6 +329,106 @@
           setAuthLoading(false);
         }
       }
+
+      function toggleOnboarding(show) {
+        onboardingOverlay.classList.toggle("active", show);
+        onboardingOverlay.setAttribute("aria-hidden", show ? "false" : "true");
+      }
+
+      function collectChips(containerId) {
+        return Array.from(document.querySelectorAll(`#${containerId} .chip.active`)).map((chip) =>
+          chip.textContent.trim()
+        );
+      }
+
+      document.querySelectorAll(".chip").forEach((chip) => {
+        chip.addEventListener("click", () => chip.classList.toggle("active"));
+      });
+
+      async function fetchProfile() {
+        const userRes = await supabaseRequest("/auth/v1/user", { method: "GET" });
+        if (!userRes.ok) return null;
+        const user = await userRes.json();
+        const userId = user?.id;
+        if (!userId) return null;
+
+        const profileRes = await supabaseRequest(`/rest/v1/profiles?id=eq.${userId}&select=onboarding_completed`, { method: "GET" });
+        if (!profileRes.ok) return { onboarding_completed: false };
+        const rows = await profileRes.json();
+        return rows && rows.length > 0 ? rows[0] : { onboarding_completed: false };
+      }
+
+      async function applyReferralIfNeeded() {
+        const code = (localStorage.getItem("wp_referral_pending") || "").trim();
+        if (!code) return;
+        try {
+          const res = await fetch("https://vnzlaidwxgiaowhxtuvi.functions.supabase.co/apply-referral", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              apikey: SUPABASE_ANON_KEY,
+              Authorization: `Bearer ${session.access_token}`
+            },
+            body: JSON.stringify({ code })
+          });
+          if (res.ok) {
+            localStorage.removeItem("wp_referral_pending");
+          }
+        } catch {}
+      }
+
+      async function afterAuthSuccess() {
+        const profile = await fetchProfile();
+        if (profile && profile.onboarding_completed) {
+          await applyReferralIfNeeded();
+          authStatus.textContent = "Signed in. Redirecting to dashboard...";
+          goToBilling();
+          return;
+        }
+        toggleOnboarding(true);
+      }
+
+      onboardingForm.addEventListener("submit", async (event) => {
+        event.preventDefault();
+        onboardingStatus.textContent = "Saving...";
+        onboardingSubmit.disabled = true;
+
+        const payload = {
+          role: document.getElementById("onb-role").value,
+          focus: document.getElementById("onb-focus").value,
+          subjects: collectChips("onb-subjects"),
+          deadline: document.getElementById("onb-deadline").value,
+          volume: document.getElementById("onb-volume").value,
+          tone: document.getElementById("onb-tone").value,
+          ai_comfort: document.getElementById("onb-ai").value,
+          devices: collectChips("onb-device")
+        };
+
+        try {
+          const res = await fetch("https://vnzlaidwxgiaowhxtuvi.functions.supabase.co/onboarding-submit", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              apikey: SUPABASE_ANON_KEY,
+              Authorization: `Bearer ${session.access_token}`
+            },
+            body: JSON.stringify({ data: payload })
+          });
+          if (!res.ok) {
+            const text = await res.text();
+            onboardingStatus.textContent = `Save failed: ${text}`;
+            return;
+          }
+          await applyReferralIfNeeded();
+          onboardingStatus.textContent = "Saved! Redirecting...";
+          toggleOnboarding(false);
+          goToBilling();
+        } catch (error) {
+          onboardingStatus.textContent = `Save failed: ${error.message || "network error"}`;
+        } finally {
+          onboardingSubmit.disabled = false;
+        }
+      });
 
 
       function navigateWithFade(url) {
@@ -247,7 +464,7 @@
         authStatus.textContent = "Signed out. Please sign in again.";
       }
       if (hasSessionToken()) {
-        goToBilling();
+        afterAuthSuccess();
       }
     </script>
   </body>
