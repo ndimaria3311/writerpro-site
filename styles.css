@@ -276,6 +276,16 @@ a {
   opacity: 0.95;
 }
 
+.pulse {
+  animation: pulse-btn 0.22s ease;
+}
+
+@keyframes pulse-btn {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.02); }
+  100% { transform: scale(1); }
+}
+
 .hero-stats {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
@@ -1454,6 +1464,17 @@ body.reduced-motion * {
   display: flex;
   justify-content: space-between;
   gap: 12px;
+}
+
+.onboarding-actions .btn-lg {
+  padding: 14px 22px;
+  font-size: 14px;
+  letter-spacing: 0.6px;
+}
+
+.onboarding-option.select-all {
+  border-style: dashed;
+  background: rgba(79, 139, 255, 0.12);
 }
 
 .onboarding-input .input {

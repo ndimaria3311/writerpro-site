@@ -80,8 +80,9 @@
           </div>
           <div class="onboarding-actions">
             <button class="btn btn-outline" id="onb-back" type="button">Back</button>
-            <button class="btn btn-primary" id="onb-next" type="button">Next</button>
-            <button class="btn btn-primary" id="onb-submit" type="submit">Finish Setup</button>
+            <button class="btn btn-outline" id="onb-skip" type="button">Skip</button>
+            <button class="btn btn-primary btn-lg" id="onb-next" type="button">Next Question</button>
+            <button class="btn btn-primary btn-lg" id="onb-submit" type="submit">Finish Setup</button>
           </div>
           <span class="notice" id="onb-status"></span>
         </form>
@@ -122,6 +123,7 @@
       const onboardingInput = document.getElementById("onb-input");
       const onboardingBack = document.getElementById("onb-back");
       const onboardingNext = document.getElementById("onb-next");
+      const onboardingSkip = document.getElementById("onb-skip");
 
       const onboardingSteps = [
         {
@@ -436,6 +438,7 @@
         onboardingBack.style.display = onboardingIndex === 0 ? "none" : "inline-flex";
         onboardingNext.style.display = onboardingIndex < onboardingSteps.length - 1 ? "inline-flex" : "none";
         onboardingSubmit.style.display = onboardingIndex === onboardingSteps.length - 1 ? "inline-flex" : "none";
+        onboardingSkip.style.display = onboardingSteps[onboardingIndex].type === "text" ? "inline-flex" : "inline-flex";
       }
 
       function setProgress() {
@@ -457,6 +460,18 @@
           });
           onboardingInput.appendChild(input);
           return;
+        }
+
+        if (step.type === "multi") {
+          const selectAll = document.createElement("button");
+          selectAll.type = "button";
+          selectAll.className = "onboarding-option select-all";
+          selectAll.innerHTML = "<span class=\"option-icon\">✅</span><span>Select all</span>";
+          selectAll.addEventListener("click", () => {
+            onboardingAnswers[step.id] = step.options.map((opt) => opt.value);
+            renderStep();
+          });
+          onboardingOptions.appendChild(selectAll);
         }
 
         step.options.forEach((opt) => {
@@ -524,6 +539,19 @@
         onboardingStatus.textContent = "";
         onboardingIndex = Math.min(onboardingSteps.length - 1, onboardingIndex + 1);
         renderStep();
+      });
+
+      onboardingSkip.addEventListener("click", () => {
+        onboardingStatus.textContent = "";
+        onboardingIndex = Math.min(onboardingSteps.length - 1, onboardingIndex + 1);
+        renderStep();
+      });
+
+      onboardingOptions.addEventListener("click", () => {
+        if (canAdvance() && onboardingIndex < onboardingSteps.length - 1) {
+          onboardingNext.classList.add("pulse");
+          setTimeout(() => onboardingNext.classList.remove("pulse"), 220);
+        }
       });
 
       async function fetchProfile() {
@@ -603,6 +631,11 @@
 
       onboardingForm.addEventListener("submit", async (event) => {
         event.preventDefault();
+        if (!hasSessionToken()) {
+          onboardingStatus.textContent = "Please sign in to finish setup.";
+          onboardingSubmit.disabled = false;
+          return;
+        }
         onboardingStatus.textContent = "Saving...";
         onboardingSubmit.disabled = true;
         for (let i = 0; i < onboardingSteps.length; i += 1) {
