@@ -11,14 +11,14 @@
     <title>Writer Pro — Admin</title>
     <link rel="stylesheet" href="styles.css" />
   </head>
-  <body class="legal-page admin-page">
+  <body class="legal-page admin-page page-enter">
     <header class="hero legal-hero">
       <nav class="nav">
         <a class="logo" href="index.html">WRITER PRO</a>
         <div class="nav-actions">
-          <a class="btn btn-outline" href="index.html">HOME</a>
-          <a class="btn btn-outline" href="billing.html">BILLING</a>
-          <a class="btn btn-outline" href="support.html">SUPPORT</a>
+          <a class="btn btn-outline page-link" href="index.html">HOME</a>
+          <a class="btn btn-outline page-link" href="billing.html">BILLING</a>
+          <a class="btn btn-outline page-link" href="support.html">SUPPORT</a>
         </div>
       </nav>
       <div class="hero-grid legal-hero-grid">
@@ -432,6 +432,19 @@
           statusEl.textContent = "Copy failed.";
         }
       }
+
+      function navigateWithFade(url) {
+        document.body.classList.add("page-exit");
+        setTimeout(() => { window.location.href = url; }, 240);
+      }
+      document.querySelectorAll(".page-link").forEach((link) => {
+        link.addEventListener("click", (event) => {
+          const href = link.getAttribute("href") || "";
+          if (href.startsWith("#")) return;
+          event.preventDefault();
+          navigateWithFade(href);
+        });
+      });
 
       function formatLogItem(log) {
         const date = formatDate(log.created_at);
