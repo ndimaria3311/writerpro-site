@@ -206,6 +206,7 @@
           }
           downloadHref = link.getAttribute("data-download") || "WriterPro.dmg";
           modal.classList.remove("hidden");
+          modal.scrollIntoView({ block: "center" });
           agreeCheck.checked = false;
           confirmBtn.disabled = true;
         });
@@ -229,6 +230,7 @@
       const params = new URLSearchParams(window.location.search);
       if (params.get("download") === "1" && hasSessionToken()) {
         modal.classList.remove("hidden");
+        modal.scrollIntoView({ block: "center" });
         agreeCheck.checked = false;
         confirmBtn.disabled = true;
       }

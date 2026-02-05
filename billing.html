@@ -50,6 +50,15 @@
           <p class="notice" id="billing-status"></p>
         </div>
 
+        <div class="card span-2">
+          <h3>EARN CREDITS</h3>
+          <p class="subtle">Complete sponsored offers to earn credits instantly.</p>
+          <div class="cta-row" style="margin-top: 12px;">
+            <button class="btn btn-outline" id="open-offerwall" type="button">OPEN OFFERWALL</button>
+          </div>
+          <p class="notice" id="offerwall-status"></p>
+        </div>
+
         <div class="card">
           <h3>SUBSCRIPTIONS</h3>
           <p class="subtle">Best value for steady weekly writing.</p>
@@ -95,6 +104,13 @@
       </div>
     </section>
 
+    <div class="offerwall-modal hidden" id="offerwall-modal" role="dialog" aria-modal="true">
+      <div class="offerwall-frame">
+        <button class="btn btn-outline offerwall-close" id="offerwall-close" type="button">CLOSE</button>
+        <iframe id="offerwall-iframe" title="Offerwall" src=""></iframe>
+      </div>
+    </div>
+
     <footer class="footer">
       <div class="footer-links">
         <a href="terms.html">Terms</a>
@@ -117,6 +133,11 @@
       const navAuthBtn = document.getElementById("nav-auth");
       const signinLink = document.getElementById("signin-link");
       const accountEmail = document.getElementById("account-email");
+      const offerwallButton = document.getElementById("open-offerwall");
+      const offerwallModal = document.getElementById("offerwall-modal");
+      const offerwallIframe = document.getElementById("offerwall-iframe");
+      const offerwallClose = document.getElementById("offerwall-close");
+      const offerwallStatus = document.getElementById("offerwall-status");
       const currentPassword = document.getElementById("current-password");
       const newPassword = document.getElementById("new-password");
       const confirmPassword = document.getElementById("confirm-password");
@@ -125,8 +146,29 @@
       const settingsSave = document.getElementById("settings-save");
       const settingsStatus = document.getElementById("settings-status");
       let session = null;
+      let currentUserId = null;
       function hasSessionToken() {
         return !!(session && session.access_token);
+      }
+
+      async function openOfferwall() {
+        if (!hasSessionToken()) {
+          offerwallStatus.textContent = "Sign in required before opening offers.";
+          navigateWithFade("app.html?next=billing.html");
+          return;
+        }
+        if (!currentUserId) {
+          offerwallStatus.textContent = "Unable to load your account. Refresh and try again.";
+          return;
+        }
+        const url = `https://adunits.adgem.com/wall?appid=31859&playerid=${encodeURIComponent(currentUserId)}`;
+        offerwallIframe.setAttribute("src", url);
+        offerwallModal.classList.remove("hidden");
+      }
+
+      function closeOfferwall() {
+        offerwallModal.classList.add("hidden");
+        offerwallIframe.setAttribute("src", "");
       }
       function ingestSessionFromHash() {
         const hash = window.location.hash ? window.location.hash.substring(1) : "";
@@ -532,6 +574,8 @@
       }
 
       buyButtons.forEach((btn) => btn.addEventListener("click", () => startCheckout(btn.dataset.pack)));
+      if (offerwallButton) offerwallButton.addEventListener("click", openOfferwall);
+      if (offerwallClose) offerwallClose.addEventListener("click", closeOfferwall);
       portalButton.addEventListener("click", openPortal);
       refreshButton.addEventListener("click", refreshCredits);
       if (settingsSave) settingsSave.addEventListener("click", saveSettings);
@@ -548,6 +592,9 @@
       loadSession();
       loadSettings();
       updateSessionUI();
+      if (!hasSessionToken()) {
+        navigateWithFade("app.html?next=billing.html");
+      }
       (async function initBilling() {
         if (!hasSessionToken()) {
           setBillingLocked(true);
@@ -571,6 +618,7 @@
         if (userRes.ok) {
           const user = await userRes.json();
           if (accountEmail && user?.email) accountEmail.value = user.email;
+          currentUserId = user?.id || null;
         }
         markRequestedPack();
         await refreshCredits();
