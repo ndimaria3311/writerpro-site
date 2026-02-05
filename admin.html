@@ -11,7 +11,7 @@
     <title>Writer Pro — Admin</title>
     <link rel="stylesheet" href="styles.css" />
   </head>
-  <body class="legal-page">
+  <body class="legal-page admin-page">
     <header class="hero legal-hero">
       <nav class="nav">
         <a class="logo" href="index.html">WRITER PRO</a>
@@ -23,45 +23,127 @@
       </nav>
       <div class="hero-grid legal-hero-grid">
         <div class="hero-copy legal-hero-copy">
-          <h1>ADMIN DASHBOARD</h1>
-          <p class="subtitle">Restricted access — admin accounts only.</p>
+          <h1>ADMIN CONTROL ROOM</h1>
+          <p class="subtitle">Secure access. Search, update, and manage user accounts.</p>
         </div>
       </div>
     </header>
 
     <section class="section">
-      <div class="card admin-card">
-        <h3>Update User</h3>
-        <p class="subtle">Add credits or set subscription tier.</p>
-        <div class="form-stack">
-          <input class="input" id="admin-email" type="email" placeholder="User email" />
-          <div class="two-col">
-            <input class="input" id="admin-credits-add" type="number" placeholder="Credits to add" />
-            <input class="input" id="admin-credits-set" type="number" placeholder="Set credits (optional)" />
+      <div class="admin-shell">
+        <div class="admin-grid">
+          <div class="admin-panel">
+            <h3>Access</h3>
+            <p class="subtle">Admin session + passkey are required.</p>
+            <div class="form-stack">
+              <input class="input" id="admin-passkey" type="password" placeholder="Admin passkey" />
+              <div class="cta-row">
+                <button class="btn btn-outline" id="admin-save-passkey">Save Passkey</button>
+                <button class="btn btn-primary" id="admin-check">Verify Access</button>
+              </div>
+            </div>
+            <p class="notice" id="admin-access-status"></p>
           </div>
-          <select class="input" id="admin-tier">
-            <option value="">Keep current tier</option>
-            <option value="writer">Writer (65)</option>
-            <option value="study">Study (180)</option>
-            <option value="test">Test (430)</option>
-          </select>
+
+          <div class="admin-panel">
+            <h3>Lookup</h3>
+            <p class="subtle">Find an account by email.</p>
+            <div class="form-stack">
+              <input class="input" id="admin-search-email" type="email" placeholder="user@email.com" />
+              <div class="cta-row">
+                <button class="btn btn-primary" id="admin-search">Search User</button>
+              </div>
+            </div>
+            <p class="notice" id="admin-search-status"></p>
+          </div>
         </div>
-        <div class="cta-row" style="margin-top: 12px;">
-          <button class="btn btn-primary" id="admin-submit">Apply Changes</button>
+
+        <div class="admin-panel admin-panel-wide">
+          <div class="admin-panel-head">
+            <div>
+              <h3>User Details</h3>
+              <p class="subtle">Edit credits, subscription, email, and password.</p>
+            </div>
+            <div class="admin-pill" id="admin-user-id">No user loaded</div>
+          </div>
+
+          <div class="admin-kpis">
+            <div class="admin-kpi">
+              <span class="label">Credits</span>
+              <strong id="admin-user-credits">—</strong>
+            </div>
+            <div class="admin-kpi">
+              <span class="label">Tier</span>
+              <strong id="admin-user-tier">—</strong>
+            </div>
+            <div class="admin-kpi">
+              <span class="label">Created</span>
+              <strong id="admin-user-created">—</strong>
+            </div>
+            <div class="admin-kpi">
+              <span class="label">Last Sign-In</span>
+              <strong id="admin-user-last">—</strong>
+            </div>
+          </div>
+
+          <div class="form-stack">
+            <div class="two-col">
+              <input class="input" id="admin-email" type="email" placeholder="Account email" />
+              <input class="input" id="admin-email-set" type="email" placeholder="Set new email (optional)" />
+            </div>
+            <div class="two-col">
+              <input class="input" id="admin-credits-add" type="number" placeholder="Credits to add" />
+              <input class="input" id="admin-credits-set" type="number" placeholder="Set credits (optional)" />
+            </div>
+            <select class="input" id="admin-tier">
+              <option value="">Keep current tier</option>
+              <option value="writer">Writer (65)</option>
+              <option value="study">Study (180)</option>
+              <option value="test">Test (430)</option>
+            </select>
+            <div class="two-col">
+              <input class="input" id="admin-password" type="password" placeholder="Set new password (optional)" />
+              <input class="input" id="admin-password-confirm" type="password" placeholder="Confirm new password" />
+            </div>
+          </div>
+
+          <div class="cta-row admin-cta">
+            <button class="btn btn-outline" id="admin-reset-form">Reset</button>
+            <button class="btn btn-primary" id="admin-submit">Apply Changes</button>
+          </div>
+          <p class="notice" id="admin-status"></p>
         </div>
-        <p class="notice" id="admin-status"></p>
       </div>
     </section>
 
     <script>
       const SUPABASE_URL = "https://vnzlaidwxgiaowhxtuvi.supabase.co";
       const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZuemxhaWR3eGdpYW93aHh0dXZpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg4MjcwNzksImV4cCI6MjA4NDQwMzA3OX0.AKiGX3xbgMKtUFYxHKEaAKwacFqmjPEsy56ofU1eDQQ";
+
+      const accessStatusEl = document.getElementById("admin-access-status");
+      const searchStatusEl = document.getElementById("admin-search-status");
       const statusEl = document.getElementById("admin-status");
+      const passkeyEl = document.getElementById("admin-passkey");
+      const savePasskeyEl = document.getElementById("admin-save-passkey");
+      const checkEl = document.getElementById("admin-check");
+      const searchEmailEl = document.getElementById("admin-search-email");
+      const searchEl = document.getElementById("admin-search");
+
+      const userIdEl = document.getElementById("admin-user-id");
+      const userCreditsEl = document.getElementById("admin-user-credits");
+      const userTierEl = document.getElementById("admin-user-tier");
+      const userCreatedEl = document.getElementById("admin-user-created");
+      const userLastEl = document.getElementById("admin-user-last");
+
       const emailEl = document.getElementById("admin-email");
+      const emailSetEl = document.getElementById("admin-email-set");
       const addEl = document.getElementById("admin-credits-add");
       const setEl = document.getElementById("admin-credits-set");
       const tierEl = document.getElementById("admin-tier");
+      const passEl = document.getElementById("admin-password");
+      const passConfirmEl = document.getElementById("admin-password-confirm");
       const submitEl = document.getElementById("admin-submit");
+      const resetEl = document.getElementById("admin-reset-form");
 
       let session = null;
       function loadSession() {
@@ -75,23 +157,99 @@
       function hasSessionToken() {
         return !!(session && session.access_token);
       }
+      function getPasskey() {
+        return (localStorage.getItem("wp_admin_passkey") || "").trim();
+      }
+      function savePasskey() {
+        const val = (passkeyEl.value || "").trim();
+        if (!val) {
+          accessStatusEl.textContent = "Enter a passkey first.";
+          return;
+        }
+        localStorage.setItem("wp_admin_passkey", val);
+        accessStatusEl.textContent = "Passkey saved.";
+      }
+
+      function authHeaders(extra = {}) {
+        return {
+          ...extra,
+          apikey: SUPABASE_ANON_KEY,
+          Authorization: `Bearer ${session.access_token}`,
+          "X-Admin-Passkey": getPasskey(),
+        };
+      }
+
       async function ensureAdmin() {
+        accessStatusEl.textContent = "Checking access...";
         if (!hasSessionToken()) {
           window.location.href = "app.html?next=admin.html";
           return false;
         }
+        if (!getPasskey()) {
+          accessStatusEl.textContent = "Missing passkey.";
+          return false;
+        }
         const res = await fetch("https://vnzlaidwxgiaowhxtuvi.functions.supabase.co/admin-check", {
-          headers: {
-            apikey: SUPABASE_ANON_KEY,
-            Authorization: `Bearer ${session.access_token}`
-          }
+          headers: authHeaders()
         });
         if (!res.ok) {
-          statusEl.textContent = "Access denied. Admin only.";
+          const text = await res.text();
+          accessStatusEl.textContent = `Access denied: ${text}`;
           submitEl.disabled = true;
           return false;
         }
+        accessStatusEl.textContent = "Admin access confirmed.";
+        submitEl.disabled = false;
         return true;
+      }
+
+      function formatDate(value) {
+        if (!value) return "—";
+        const date = new Date(value);
+        if (Number.isNaN(date.getTime())) return "—";
+        return date.toLocaleString();
+      }
+
+      function setUserDetails(data) {
+        userIdEl.textContent = data.id ? `ID: ${data.id}` : "No user loaded";
+        userCreditsEl.textContent = typeof data.credits === "number" ? data.credits.toLocaleString() : "—";
+        userTierEl.textContent = data.subscription_tier || "—";
+        userCreatedEl.textContent = formatDate(data.created_at);
+        userLastEl.textContent = formatDate(data.last_sign_in_at);
+        emailEl.value = data.email || "";
+        emailSetEl.value = "";
+        addEl.value = "";
+        setEl.value = "";
+        tierEl.value = "";
+        passEl.value = "";
+        passConfirmEl.value = "";
+      }
+
+      async function searchUser() {
+        searchStatusEl.textContent = "Searching...";
+        const email = (searchEmailEl.value || "").trim().toLowerCase();
+        if (!email) {
+          searchStatusEl.textContent = "Enter an email.";
+          return;
+        }
+        if (!await ensureAdmin()) return;
+        try {
+          const res = await fetch("https://vnzlaidwxgiaowhxtuvi.functions.supabase.co/admin-search", {
+            method: "POST",
+            headers: authHeaders({ "Content-Type": "application/json" }),
+            body: JSON.stringify({ email })
+          });
+          const text = await res.text();
+          if (!res.ok) {
+            searchStatusEl.textContent = `Search failed: ${text}`;
+            return;
+          }
+          const data = JSON.parse(text);
+          searchStatusEl.textContent = `Loaded ${data.email}`;
+          setUserDetails(data);
+        } catch (err) {
+          searchStatusEl.textContent = `Search failed: ${err.message || "network error"}`;
+        }
       }
 
       async function submitUpdate() {
@@ -104,15 +262,21 @@
         if (!Number.isNaN(add)) payload.credits_add = add;
         if (!Number.isNaN(set)) payload.credits_set = set;
         if (tierEl.value) payload.subscription_tier = tierEl.value;
+        const emailSet = (emailSetEl.value || "").trim().toLowerCase();
+        if (emailSet) payload.email_set = emailSet;
+        const pass = (passEl.value || "").trim();
+        if (pass) {
+          if (pass !== (passConfirmEl.value || "").trim()) {
+            statusEl.textContent = "Passwords do not match.";
+            return;
+          }
+          payload.password_set = pass;
+        }
 
         try {
           const res = await fetch("https://vnzlaidwxgiaowhxtuvi.functions.supabase.co/admin-update-user", {
             method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              apikey: SUPABASE_ANON_KEY,
-              Authorization: `Bearer ${session.access_token}`
-            },
+            headers: authHeaders({ "Content-Type": "application/json" }),
             body: JSON.stringify(payload)
           });
           const text = await res.text();
@@ -122,13 +286,31 @@
           }
           const data = JSON.parse(text);
           statusEl.textContent = `Updated ${data.email} → ${data.credits} credits, tier ${data.subscription_tier}`;
+          setUserDetails(data);
         } catch (err) {
           statusEl.textContent = `Update failed: ${err.message || "network error"}`;
         }
       }
 
+      function resetForm() {
+        emailSetEl.value = "";
+        addEl.value = "";
+        setEl.value = "";
+        tierEl.value = "";
+        passEl.value = "";
+        passConfirmEl.value = "";
+        statusEl.textContent = "";
+      }
+
+      savePasskeyEl.addEventListener("click", savePasskey);
+      checkEl.addEventListener("click", ensureAdmin);
+      searchEl.addEventListener("click", searchUser);
       submitEl.addEventListener("click", submitUpdate);
+      resetEl.addEventListener("click", resetForm);
+
       loadSession();
+      const savedPasskey = getPasskey();
+      if (savedPasskey) passkeyEl.value = savedPasskey;
       ensureAdmin();
     </script>
   </body>
