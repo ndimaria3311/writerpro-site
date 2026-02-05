@@ -5,6 +5,8 @@
   --accent: #007aff;
   --text: #1d1d1f;
   --muted: #6e6e73;
+  --text-primary: #1d1d1f;
+  --text-muted: #6e6e73;
   --border: #d1d1d6;
   --shadow: 0 20px 50px rgba(15, 15, 25, 0.15);
 }
@@ -1076,6 +1078,8 @@ body.reduced-motion * {
     --accent: #4c8dff;
     --text: #f5f7ff;
     --muted: #b8bfcb;
+    --text-primary: #f5f7ff;
+    --text-muted: #b8bfcb;
     --border: #2f3542;
     --shadow: 0 20px 50px rgba(0, 0, 0, 0.38);
   }
@@ -1374,6 +1378,86 @@ body.reduced-motion * {
   margin-top: 18px;
   display: grid;
   gap: 16px;
+}
+
+.onboarding-progress {
+  height: 10px;
+  border-radius: 999px;
+  background: rgba(15, 23, 42, 0.5);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  overflow: hidden;
+}
+
+.onboarding-progress-bar {
+  height: 100%;
+  width: 0%;
+  background: linear-gradient(90deg, rgba(79, 139, 255, 0.6), rgba(79, 139, 255, 1));
+  transition: width 0.25s ease;
+}
+
+.onboarding-step {
+  display: grid;
+  gap: 14px;
+}
+
+.onboarding-step-count {
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--text-muted);
+}
+
+.onboarding-step h4 {
+  font-size: 20px;
+  color: var(--text-primary);
+}
+
+.onboarding-options {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 12px;
+}
+
+.onboarding-option {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(15, 23, 42, 0.6);
+  color: var(--text-primary);
+  transition: border-color 0.2s ease, background 0.2s ease, transform 0.2s ease;
+}
+
+.onboarding-option:hover {
+  transform: translateY(-1px);
+  border-color: rgba(79, 139, 255, 0.6);
+}
+
+.onboarding-option.active {
+  background: rgba(79, 139, 255, 0.22);
+  border-color: rgba(79, 139, 255, 0.9);
+}
+
+.option-icon {
+  width: 30px;
+  height: 30px;
+  border-radius: 10px;
+  display: grid;
+  place-items: center;
+  background: rgba(79, 139, 255, 0.2);
+  font-size: 16px;
+}
+
+.onboarding-actions {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.onboarding-input .input {
+  width: 100%;
 }
 
 .chip-grid {

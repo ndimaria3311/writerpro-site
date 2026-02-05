@@ -69,110 +69,21 @@
           <p class="subtle">Personalize Writer Pro from day one.</p>
         </div>
         <form class="onboarding-form" id="onboarding-form">
-          <div class="two-col">
-            <label class="input">
-              <span>Primary role</span>
-              <select id="onb-role" required>
-                <option value="" disabled selected>Select one</option>
-                <option value="high_school">High school student</option>
-                <option value="college">College student</option>
-                <option value="university">University student</option>
-                <option value="graduate">Graduate / post-grad</option>
-                <option value="workforce">Workforce / professional</option>
-                <option value="educator">Educator</option>
-                <option value="other">Other</option>
-              </select>
-            </label>
-            <label class="input">
-              <span>Primary focus</span>
-              <select id="onb-focus" required>
-                <option value="" disabled selected>Select one</option>
-                <option value="essays">Essays</option>
-                <option value="research">Research papers</option>
-                <option value="study">Study / flashcards</option>
-                <option value="test_prep">Test prep</option>
-                <option value="work_docs">Work documents</option>
-                <option value="creative">Creative writing</option>
-              </select>
-            </label>
+          <div class="onboarding-progress">
+            <div class="onboarding-progress-bar" id="onb-progress"></div>
           </div>
-
-          <label class="input">
-            <span>Subjects (select all that apply)</span>
-            <div class="chip-grid" id="onb-subjects">
-              <button type="button" class="chip">English</button>
-              <button type="button" class="chip">History</button>
-              <button type="button" class="chip">Science</button>
-              <button type="button" class="chip">Math</button>
-              <button type="button" class="chip">Business</button>
-              <button type="button" class="chip">Computer Science</button>
-              <button type="button" class="chip">Languages</button>
-              <button type="button" class="chip">Other</button>
-            </div>
-          </label>
-
-          <div class="two-col">
-            <label class="input">
-              <span>Typical deadline</span>
-              <select id="onb-deadline" required>
-                <option value="" disabled selected>Select one</option>
-                <option value="same_day">Same day</option>
-                <option value="few_days">Few days</option>
-                <option value="week_plus">A week+</option>
-              </select>
-            </label>
-            <label class="input">
-              <span>Writing volume / week</span>
-              <select id="onb-volume" required>
-                <option value="" disabled selected>Select one</option>
-                <option value="light">Light (1–2 tasks)</option>
-                <option value="moderate">Moderate (3–5 tasks)</option>
-                <option value="heavy">Heavy (6+ tasks)</option>
-              </select>
-            </label>
+          <div class="onboarding-step">
+            <div class="onboarding-step-count" id="onb-step-count"></div>
+            <h4 id="onb-question"></h4>
+            <div class="onboarding-options" id="onb-options"></div>
+            <div class="onboarding-input" id="onb-input"></div>
           </div>
-
-          <div class="two-col">
-            <label class="input">
-              <span>Preferred tone</span>
-              <select id="onb-tone" required>
-                <option value="" disabled selected>Select one</option>
-                <option value="formal">Formal / academic</option>
-                <option value="balanced">Balanced</option>
-                <option value="conversational">Conversational</option>
-              </select>
-            </label>
-            <label class="input">
-              <span>AI comfort level</span>
-              <select id="onb-ai" required>
-                <option value="" disabled selected>Select one</option>
-                <option value="low">Low — I want heavy control</option>
-                <option value="medium">Medium — guide me</option>
-                <option value="high">High — auto-suggestions ok</option>
-              </select>
-            </label>
-          </div>
-
-          <label class="input">
-            <span>Primary device</span>
-            <div class="chip-grid" id="onb-device">
-              <button type="button" class="chip">MacBook</button>
-              <button type="button" class="chip">iMac</button>
-              <button type="button" class="chip">Mac mini</button>
-              <button type="button" class="chip">Other</button>
-            </div>
-          </label>
-
-          <div class="cta-row">
+          <div class="onboarding-actions">
+            <button class="btn btn-outline" id="onb-back" type="button">Back</button>
+            <button class="btn btn-primary" id="onb-next" type="button">Next</button>
             <button class="btn btn-primary" id="onb-submit" type="submit">Finish Setup</button>
-            <span class="notice" id="onb-status"></span>
           </div>
-          <div class="onboarding-referral">
-            <label class="input">
-              <span>Referral code (optional)</span>
-              <input id="onb-referral" type="text" placeholder="Enter code if you have one" />
-            </label>
-          </div>
+          <span class="notice" id="onb-status"></span>
         </form>
       </div>
     </div>
@@ -204,6 +115,116 @@
       const onboardingForm = document.getElementById("onboarding-form");
       const onboardingStatus = document.getElementById("onb-status");
       const onboardingSubmit = document.getElementById("onb-submit");
+      const onboardingProgress = document.getElementById("onb-progress");
+      const onboardingStepCount = document.getElementById("onb-step-count");
+      const onboardingQuestion = document.getElementById("onb-question");
+      const onboardingOptions = document.getElementById("onb-options");
+      const onboardingInput = document.getElementById("onb-input");
+      const onboardingBack = document.getElementById("onb-back");
+      const onboardingNext = document.getElementById("onb-next");
+
+      const onboardingSteps = [
+        {
+          id: "role",
+          question: "What best describes you?",
+          type: "single",
+          options: [
+            { icon: "🎓", label: "High school student", value: "high_school" },
+            { icon: "📚", label: "College student", value: "college" },
+            { icon: "🏛️", label: "University student", value: "university" },
+            { icon: "🧪", label: "Graduate / post-grad", value: "graduate" },
+            { icon: "💼", label: "Workforce / professional", value: "workforce" },
+            { icon: "🧑‍🏫", label: "Educator", value: "educator" }
+          ]
+        },
+        {
+          id: "goal",
+          question: "What do you primarily want to create?",
+          type: "single",
+          options: [
+            { icon: "📝", label: "Essays", value: "essays" },
+            { icon: "🔬", label: "Research papers", value: "research" },
+            { icon: "📖", label: "Study materials", value: "study" },
+            { icon: "🧠", label: "Test prep", value: "test_prep" },
+            { icon: "📄", label: "Work documents", value: "work_docs" },
+            { icon: "✍️", label: "Creative writing", value: "creative" }
+          ]
+        },
+        {
+          id: "subjects",
+          question: "Which subjects matter most right now? (Select all)",
+          type: "multi",
+          options: [
+            { icon: "📘", label: "English", value: "english" },
+            { icon: "🏺", label: "History", value: "history" },
+            { icon: "🧬", label: "Science", value: "science" },
+            { icon: "➗", label: "Math", value: "math" },
+            { icon: "📊", label: "Business", value: "business" },
+            { icon: "💻", label: "Computer Science", value: "cs" },
+            { icon: "🌍", label: "Languages", value: "languages" },
+            { icon: "✨", label: "Other", value: "other" }
+          ]
+        },
+        {
+          id: "deadline",
+          question: "How soon are your typical deadlines?",
+          type: "single",
+          options: [
+            { icon: "⚡", label: "Same day", value: "same_day" },
+            { icon: "⏱️", label: "Few days", value: "few_days" },
+            { icon: "🗓️", label: "A week or more", value: "week_plus" }
+          ]
+        },
+        {
+          id: "volume",
+          question: "How much writing or studying do you do each week?",
+          type: "single",
+          options: [
+            { icon: "🧩", label: "Light (1–2 tasks)", value: "light" },
+            { icon: "📚", label: "Moderate (3–5 tasks)", value: "moderate" },
+            { icon: "🏃", label: "Heavy (6+ tasks)", value: "heavy" }
+          ]
+        },
+        {
+          id: "tone",
+          question: "Preferred writing tone?",
+          type: "single",
+          options: [
+            { icon: "🎓", label: "Formal / academic", value: "formal" },
+            { icon: "⚖️", label: "Balanced", value: "balanced" },
+            { icon: "💬", label: "Conversational", value: "conversational" }
+          ]
+        },
+        {
+          id: "ai_comfort",
+          question: "How comfortable are you with AI suggestions?",
+          type: "single",
+          options: [
+            { icon: "🛡️", label: "Low — I want heavy control", value: "low" },
+            { icon: "🤝", label: "Medium — guide me", value: "medium" },
+            { icon: "🚀", label: "High — auto-suggestions ok", value: "high" }
+          ]
+        },
+        {
+          id: "device",
+          question: "Primary device",
+          type: "single",
+          options: [
+            { icon: "💻", label: "MacBook", value: "macbook" },
+            { icon: "🖥️", label: "iMac", value: "imac" },
+            { icon: "🧱", label: "Mac mini", value: "macmini" },
+            { icon: "🧩", label: "Other", value: "other" }
+          ]
+        },
+        {
+          id: "referral",
+          question: "Have a referral code? (Optional)",
+          type: "text",
+          placeholder: "Enter referral code"
+        }
+      ];
+      let onboardingIndex = 0;
+      const onboardingAnswers = {};
 
       let session = null;
       function hasSessionToken() {
@@ -405,16 +426,104 @@
       function toggleOnboarding(show) {
         onboardingOverlay.classList.toggle("active", show);
         onboardingOverlay.setAttribute("aria-hidden", show ? "false" : "true");
+        if (show) {
+          onboardingIndex = 0;
+          renderStep();
+        }
       }
 
-      function collectChips(containerId) {
-        return Array.from(document.querySelectorAll(`#${containerId} .chip.active`)).map((chip) =>
-          chip.textContent.trim()
-        );
+      function setStepButtons() {
+        onboardingBack.style.display = onboardingIndex === 0 ? "none" : "inline-flex";
+        onboardingNext.style.display = onboardingIndex < onboardingSteps.length - 1 ? "inline-flex" : "none";
+        onboardingSubmit.style.display = onboardingIndex === onboardingSteps.length - 1 ? "inline-flex" : "none";
       }
 
-      document.querySelectorAll(".chip").forEach((chip) => {
-        chip.addEventListener("click", () => chip.classList.toggle("active"));
+      function setProgress() {
+        const progress = (onboardingIndex + 1) / onboardingSteps.length;
+        onboardingProgress.style.width = `${Math.max(0, Math.min(1, progress)) * 100}%`;
+        onboardingStepCount.textContent = `Step ${onboardingIndex + 1} of ${onboardingSteps.length}`;
+      }
+
+      function renderOptions(step) {
+        onboardingOptions.innerHTML = "";
+        onboardingInput.innerHTML = "";
+        if (step.type === "text") {
+          const input = document.createElement("input");
+          input.className = "input";
+          input.placeholder = step.placeholder || "";
+          input.value = onboardingAnswers[step.id] || "";
+          input.addEventListener("input", () => {
+            onboardingAnswers[step.id] = input.value.trim();
+          });
+          onboardingInput.appendChild(input);
+          return;
+        }
+
+        step.options.forEach((opt) => {
+          const btn = document.createElement("button");
+          btn.type = "button";
+          btn.className = "onboarding-option";
+          const icon = document.createElement("span");
+          icon.className = "option-icon";
+          icon.textContent = opt.icon;
+          const label = document.createElement("span");
+          label.textContent = opt.label;
+          btn.appendChild(icon);
+          btn.appendChild(label);
+
+          const current = onboardingAnswers[step.id];
+          if (step.type === "single" && current === opt.value) btn.classList.add("active");
+          if (step.type === "multi" && Array.isArray(current) && current.includes(opt.value)) btn.classList.add("active");
+
+          btn.addEventListener("click", () => {
+            if (step.type === "single") {
+              onboardingAnswers[step.id] = opt.value;
+              renderStep();
+            } else {
+              const existing = Array.isArray(onboardingAnswers[step.id]) ? onboardingAnswers[step.id] : [];
+              if (existing.includes(opt.value)) {
+                onboardingAnswers[step.id] = existing.filter((v) => v !== opt.value);
+              } else {
+                onboardingAnswers[step.id] = [...existing, opt.value];
+              }
+              renderStep();
+            }
+          });
+          onboardingOptions.appendChild(btn);
+        });
+      }
+
+      function renderStep() {
+        const step = onboardingSteps[onboardingIndex];
+        onboardingQuestion.textContent = step.question;
+        renderOptions(step);
+        setProgress();
+        setStepButtons();
+      }
+
+      function canAdvance() {
+        const step = onboardingSteps[onboardingIndex];
+        const value = onboardingAnswers[step.id];
+        if (step.type === "text") return true;
+        if (step.type === "single") return !!value;
+        if (step.type === "multi") return Array.isArray(value) && value.length > 0;
+        return false;
+      }
+
+      onboardingBack.addEventListener("click", () => {
+        onboardingStatus.textContent = "";
+        onboardingIndex = Math.max(0, onboardingIndex - 1);
+        renderStep();
+      });
+
+      onboardingNext.addEventListener("click", () => {
+        if (!canAdvance()) {
+          onboardingStatus.textContent = "Please select an option to continue.";
+          return;
+        }
+        onboardingStatus.textContent = "";
+        onboardingIndex = Math.min(onboardingSteps.length - 1, onboardingIndex + 1);
+        renderStep();
       });
 
       async function fetchProfile() {
@@ -496,18 +605,30 @@
         event.preventDefault();
         onboardingStatus.textContent = "Saving...";
         onboardingSubmit.disabled = true;
-        const referralInput = (document.getElementById("onb-referral").value || "").trim();
+        for (let i = 0; i < onboardingSteps.length; i += 1) {
+          const step = onboardingSteps[i];
+          const value = onboardingAnswers[step.id];
+          const ok = step.type === "text" ? true : (step.type === "single" ? !!value : Array.isArray(value) && value.length > 0);
+          if (!ok) {
+            onboardingStatus.textContent = "Please answer all required questions.";
+            onboardingIndex = i;
+            renderStep();
+            onboardingSubmit.disabled = false;
+            return;
+          }
+        }
+        const referralInput = (onboardingAnswers.referral || "").trim();
         if (referralInput) localStorage.setItem("wp_referral_pending", referralInput);
 
         const payload = {
-          role: document.getElementById("onb-role").value,
-          focus: document.getElementById("onb-focus").value,
-          subjects: collectChips("onb-subjects"),
-          deadline: document.getElementById("onb-deadline").value,
-          volume: document.getElementById("onb-volume").value,
-          tone: document.getElementById("onb-tone").value,
-          ai_comfort: document.getElementById("onb-ai").value,
-          devices: collectChips("onb-device")
+          role: onboardingAnswers.role || "",
+          goal: onboardingAnswers.goal || "",
+          subjects: onboardingAnswers.subjects || [],
+          deadline: onboardingAnswers.deadline || "",
+          volume: onboardingAnswers.volume || "",
+          tone: onboardingAnswers.tone || "",
+          ai_comfort: onboardingAnswers.ai_comfort || "",
+          device: onboardingAnswers.device || ""
         };
 
         try {
