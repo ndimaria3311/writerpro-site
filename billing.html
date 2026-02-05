@@ -171,8 +171,8 @@
           return;
         }
         const url = `https://adunits.adgem.com/wall?appid=31859&playerid=${encodeURIComponent(currentUserId)}`;
-        offerwallIframe.setAttribute("src", url);
-        offerwallModal.classList.remove("hidden");
+        window.open(url, "_blank", "noopener");
+        offerwallStatus.textContent = "Offerwall opened in a new tab.";
       }
 
       function closeOfferwall() {
