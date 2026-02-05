@@ -810,6 +810,26 @@ a {
   gap: 10px;
 }
 
+.danger-zone {
+  margin-top: 18px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border);
+  display: grid;
+  gap: 8px;
+}
+
+.btn.danger {
+  border-color: rgba(248, 113, 113, 0.6);
+  color: #f87171;
+  background: transparent;
+}
+
+.btn.danger:hover {
+  border-color: rgba(248, 113, 113, 0.9);
+  color: #fff;
+  background: rgba(248, 113, 113, 0.2);
+}
+
 .btn[disabled] {
   opacity: 0.5;
   cursor: not-allowed;

@@ -100,6 +100,11 @@
             <button class="btn btn-primary" id="settings-save">Save Account Changes</button>
             <p class="notice" id="settings-status"></p>
           </div>
+          <div class="danger-zone">
+            <h4>Delete Account</h4>
+            <p class="subtle">This permanently removes your account. Active subscriptions must be canceled first.</p>
+            <button class="btn btn-outline danger" id="delete-account">Delete Account</button>
+          </div>
         </div>
       </div>
     </section>
@@ -119,6 +124,19 @@
       <div class="offerwall-frame">
         <button class="btn btn-outline offerwall-close" id="offerwall-close" type="button">CLOSE</button>
         <iframe id="offerwall-iframe" title="Offerwall" src=""></iframe>
+      </div>
+    </div>
+
+    <div class="modal hidden" id="delete-modal" role="dialog" aria-modal="true">
+      <div class="modal-card">
+        <h3>Delete account?</h3>
+        <p>This is permanent. Type DELETE to confirm.</p>
+        <input class="input" id="delete-confirm" type="text" placeholder="Type DELETE" />
+        <div class="modal-actions">
+          <button class="btn btn-outline" id="delete-cancel" type="button">Cancel</button>
+          <button class="btn btn-primary" id="delete-confirm-btn" type="button" disabled>Delete</button>
+        </div>
+        <p class="notice" id="delete-status"></p>
       </div>
     </div>
 
@@ -149,6 +167,12 @@
       const offerwallIframe = document.getElementById("offerwall-iframe");
       const offerwallClose = document.getElementById("offerwall-close");
       const offerwallStatus = document.getElementById("offerwall-status");
+      const deleteBtn = document.getElementById("delete-account");
+      const deleteModal = document.getElementById("delete-modal");
+      const deleteConfirmInput = document.getElementById("delete-confirm");
+      const deleteCancel = document.getElementById("delete-cancel");
+      const deleteConfirmBtn = document.getElementById("delete-confirm-btn");
+      const deleteStatus = document.getElementById("delete-status");
       const currentPassword = document.getElementById("current-password");
       const newPassword = document.getElementById("new-password");
       const confirmPassword = document.getElementById("confirm-password");
@@ -180,6 +204,22 @@
       function closeOfferwall() {
         offerwallModal.classList.add("hidden");
         offerwallIframe.setAttribute("src", "");
+      }
+
+      function openDeleteModal() {
+        if (!hasSessionToken()) {
+          billingStatus.textContent = "Sign in required before deleting your account.";
+          navigateWithFade("app.html?next=billing.html");
+          return;
+        }
+        deleteStatus.textContent = "";
+        deleteConfirmInput.value = "";
+        deleteConfirmBtn.disabled = true;
+        deleteModal.classList.remove("hidden");
+      }
+
+      function closeDeleteModal() {
+        deleteModal.classList.add("hidden");
       }
       function ingestSessionFromHash() {
         const hash = window.location.hash ? window.location.hash.substring(1) : "";
@@ -584,8 +624,54 @@
         navigateWithFade("app.html?signed_out=1");
       }
 
+      async function deleteAccount() {
+        if (!hasSessionToken()) {
+          deleteStatus.textContent = "Please sign in again.";
+          return;
+        }
+        deleteConfirmBtn.disabled = true;
+        deleteStatus.textContent = "Deleting account...";
+        try {
+          const res = await fetch("https://vnzlaidwxgiaowhxtuvi.functions.supabase.co/delete-account", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              apikey: SUPABASE_ANON_KEY,
+              Authorization: `Bearer ${session.access_token}`
+            },
+            body: JSON.stringify({})
+          });
+          if (res.status === 409) {
+            deleteStatus.textContent = "Active subscription detected. Cancel it before deleting.";
+            deleteConfirmBtn.disabled = false;
+            return;
+          }
+          if (!res.ok) {
+            const text = await res.text();
+            deleteStatus.textContent = `Delete failed: ${text}`;
+            deleteConfirmBtn.disabled = false;
+            return;
+          }
+          await remoteSignOut();
+          storeSession(null);
+          closeDeleteModal();
+          navigateWithFade("app.html?signed_out=1");
+        } catch (error) {
+          deleteStatus.textContent = `Delete failed: ${(error && error.message) || "network error"}`;
+          deleteConfirmBtn.disabled = false;
+        }
+      }
+
       buyButtons.forEach((btn) => btn.addEventListener("click", () => startCheckout(btn.dataset.pack)));
       if (offerwallClose) offerwallClose.addEventListener("click", closeOfferwall);
+      if (deleteBtn) deleteBtn.addEventListener("click", openDeleteModal);
+      if (deleteCancel) deleteCancel.addEventListener("click", closeDeleteModal);
+      if (deleteConfirmInput) {
+        deleteConfirmInput.addEventListener("input", () => {
+          deleteConfirmBtn.disabled = deleteConfirmInput.value.trim().toUpperCase() !== "DELETE";
+        });
+      }
+      if (deleteConfirmBtn) deleteConfirmBtn.addEventListener("click", deleteAccount);
       portalButton.addEventListener("click", openPortal);
       refreshButton.addEventListener("click", refreshCredits);
       if (settingsSave) settingsSave.addEventListener("click", saveSettings);
