@@ -462,7 +462,7 @@
         onboardingBack.style.display = onboardingIndex === 0 ? "none" : "inline-flex";
         onboardingNext.style.display = onboardingIndex < onboardingSteps.length - 1 ? "inline-flex" : "none";
         onboardingSubmit.style.display = onboardingIndex === onboardingSteps.length - 1 ? "inline-flex" : "none";
-        onboardingSkip.style.display = onboardingSteps[onboardingIndex].type === "text" ? "inline-flex" : "inline-flex";
+        onboardingSkip.style.display = onboardingSteps[onboardingIndex].id === "referral" ? "none" : "inline-flex";
       }
 
       function setProgress() {
