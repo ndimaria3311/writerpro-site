@@ -64,80 +64,19 @@
           <div class="admin-panel-head">
             <div>
               <h3>User Details</h3>
-              <p class="subtle">Edit credits, subscription, email, and password.</p>
+              <p class="subtle">Edit email, password, credits, tier, and admin access.</p>
             </div>
             <div class="admin-pill" id="admin-user-id">No user loaded</div>
-          </div>
-
-          <div class="admin-kpis">
-            <div class="admin-kpi">
-              <span class="label">Credits</span>
-              <strong id="admin-user-credits">—</strong>
-            </div>
-            <div class="admin-kpi">
-              <span class="label">Tier</span>
-              <strong id="admin-user-tier">—</strong>
-            </div>
-            <div class="admin-kpi">
-              <span class="label">Name</span>
-              <strong id="admin-user-name">—</strong>
-            </div>
-            <div class="admin-kpi">
-              <span class="label">Admin</span>
-              <strong id="admin-user-admin">—</strong>
-            </div>
-            <div class="admin-kpi">
-              <span class="label">Referral Code</span>
-              <strong id="admin-user-referral">—</strong>
-            </div>
-            <div class="admin-kpi">
-              <span class="label">Referred By</span>
-              <strong id="admin-user-referred">—</strong>
-            </div>
-            <div class="admin-kpi">
-              <span class="label">Created</span>
-              <strong id="admin-user-created">—</strong>
-            </div>
-            <div class="admin-kpi">
-              <span class="label">Last Sign-In</span>
-              <strong id="admin-user-last">—</strong>
-            </div>
-          </div>
-
-          <div class="admin-referral">
-            <div>
-              <span class="label">Referral link</span>
-              <div class="admin-referral-row">
-                <input class="input input-compact" id="admin-referral-link" type="text" readonly />
-                <button class="btn btn-outline btn-compact" id="admin-copy-referral">Copy</button>
-              </div>
-            </div>
-          </div>
-
-          <div class="admin-onboarding">
-            <span class="label">Onboarding summary</span>
-            <div class="admin-onboarding-grid" id="admin-onboarding-summary"></div>
           </div>
 
           <div class="form-stack">
             <div class="two-col">
               <input class="input" id="admin-email" type="email" placeholder="Account email" />
-              <input class="input" id="admin-email-set" type="email" placeholder="Set new email (optional)" />
-            </div>
-            <div class="two-col">
-              <input class="input" id="admin-first-name" type="text" placeholder="First name" />
-              <input class="input" id="admin-last-name" type="text" placeholder="Last name" />
-            </div>
-            <div class="two-col">
-              <div class="input-group">
-                <input class="input" id="admin-referral-set" type="text" placeholder="Set referral code (optional)" />
-                <button class="btn btn-outline btn-compact" id="admin-generate-referral" type="button">Generate</button>
-              </div>
-              <input class="input" id="admin-referred-by" type="text" placeholder="Referred by (read-only)" disabled />
+              <input class="input" id="admin-email-set" type="email" placeholder="Set new email" />
             </div>
             <div class="two-col">
               <input class="input" id="admin-credits-add" type="number" placeholder="Credits to add" />
-              <input class="input" id="admin-credits-set" type="number" placeholder="Set credits (optional)" />
+              <input class="input" id="admin-credits-set" type="number" placeholder="Set credits" />
             </div>
             <select class="input" id="admin-tier">
               <option value="">Keep current tier</option>
@@ -150,15 +89,8 @@
               <input type="checkbox" id="admin-is-admin" />
             </label>
             <div class="two-col">
-              <input class="input" id="admin-password" type="password" placeholder="Set new password (optional)" />
+              <input class="input" id="admin-password" type="password" placeholder="Set new password" />
               <input class="input" id="admin-password-confirm" type="password" placeholder="Confirm new password" />
-            </div>
-            <div class="admin-json">
-              <div class="admin-json-head">
-                <span>Onboarding data</span>
-                <button class="btn btn-outline btn-compact" id="admin-copy-onboarding">Copy JSON</button>
-              </div>
-              <pre id="admin-onboarding-json">—</pre>
             </div>
           </div>
 
@@ -169,18 +101,7 @@
           <p class="notice" id="admin-status"></p>
         </div>
 
-        <div class="admin-panel admin-panel-wide" id="admin-content-logs">
-          <div class="admin-panel-head">
-            <div>
-              <h3>Recent Activity</h3>
-              <p class="subtle">Latest admin actions and onboarding submissions.</p>
-            </div>
-            <div class="cta-row">
-              <button class="btn btn-outline btn-compact" id="admin-refresh-logs">Refresh</button>
-            </div>
-          </div>
-          <div class="admin-log-list" id="admin-log-list"></div>
-        </div>
+        <div class="admin-panel admin-panel-wide" id="admin-content-logs" style="display:none;"></div>
       </div>
     </section>
 
@@ -198,25 +119,8 @@
       const searchEl = document.getElementById("admin-search");
 
       const userIdEl = document.getElementById("admin-user-id");
-      const userCreditsEl = document.getElementById("admin-user-credits");
-      const userTierEl = document.getElementById("admin-user-tier");
-      const userNameEl = document.getElementById("admin-user-name");
-      const userAdminEl = document.getElementById("admin-user-admin");
-      const userReferralEl = document.getElementById("admin-user-referral");
-      const userReferredEl = document.getElementById("admin-user-referred");
-      const userCreatedEl = document.getElementById("admin-user-created");
-      const userLastEl = document.getElementById("admin-user-last");
-      const referralLinkEl = document.getElementById("admin-referral-link");
-      const referralCopyEl = document.getElementById("admin-copy-referral");
-      const onboardingSummaryEl = document.getElementById("admin-onboarding-summary");
-
       const emailEl = document.getElementById("admin-email");
       const emailSetEl = document.getElementById("admin-email-set");
-      const firstNameEl = document.getElementById("admin-first-name");
-      const lastNameEl = document.getElementById("admin-last-name");
-      const referralSetEl = document.getElementById("admin-referral-set");
-      const generateReferralEl = document.getElementById("admin-generate-referral");
-      const referredByEl = document.getElementById("admin-referred-by");
       const addEl = document.getElementById("admin-credits-add");
       const setEl = document.getElementById("admin-credits-set");
       const tierEl = document.getElementById("admin-tier");
@@ -225,10 +129,6 @@
       const passConfirmEl = document.getElementById("admin-password-confirm");
       const submitEl = document.getElementById("admin-submit");
       const resetEl = document.getElementById("admin-reset-form");
-      const onboardingJsonEl = document.getElementById("admin-onboarding-json");
-      const copyOnboardingEl = document.getElementById("admin-copy-onboarding");
-      const refreshLogsEl = document.getElementById("admin-refresh-logs");
-      const logListEl = document.getElementById("admin-log-list");
       let adminUnlocked = false;
 
       function setAdminUnlocked(value) {
@@ -293,73 +193,19 @@
         accessStatusEl.textContent = "Admin access confirmed.";
         submitEl.disabled = false;
         setAdminUnlocked(true);
-        loadAuditLogs(true);
         return true;
-      }
-
-      function formatDate(value) {
-        if (!value) return "—";
-        const date = new Date(value);
-        if (Number.isNaN(date.getTime())) return "—";
-        return date.toLocaleString();
-      }
-
-      function buildReferralLink(code) {
-        if (!code) return "";
-        const base = `${window.location.origin}${window.location.pathname.replace("admin.html", "app.html")}`;
-        return `${base}?ref=${encodeURIComponent(code)}`;
-      }
-
-      function renderOnboardingSummary(data) {
-        onboardingSummaryEl.innerHTML = "";
-        if (!data || Object.keys(data).length === 0) {
-          onboardingSummaryEl.innerHTML = "<span class=\"subtle\">No onboarding data yet.</span>";
-          return;
-        }
-        const fields = [
-          ["Role", data.role],
-          ["Focus", data.focus],
-          ["Subjects", Array.isArray(data.subjects) ? data.subjects.join(", ") : ""],
-          ["Deadline", data.deadline],
-          ["Volume", data.volume],
-          ["Tone", data.tone],
-          ["AI Comfort", data.ai_comfort],
-          ["Devices", Array.isArray(data.devices) ? data.devices.join(", ") : ""],
-        ];
-        fields.forEach(([label, value]) => {
-          if (!value) return;
-          const item = document.createElement("div");
-          item.className = "admin-onboarding-item";
-          item.innerHTML = `<span>${label}</span><strong>${value}</strong>`;
-          onboardingSummaryEl.appendChild(item);
-        });
       }
 
       function setUserDetails(data) {
         userIdEl.textContent = data.id ? `ID: ${data.id}` : "No user loaded";
-        userCreditsEl.textContent = typeof data.credits === "number" ? data.credits.toLocaleString() : "—";
-        userTierEl.textContent = data.subscription_tier || "—";
-        userNameEl.textContent = `${data.first_name || ""} ${data.last_name || ""}`.trim() || "—";
-        userAdminEl.textContent = data.is_admin ? "Yes" : "No";
-        userReferralEl.textContent = data.referral_code || "—";
-        userReferredEl.textContent = data.referred_by || "—";
-        userCreatedEl.textContent = formatDate(data.created_at);
-        userLastEl.textContent = formatDate(data.last_sign_in_at);
-        referralLinkEl.value = buildReferralLink(data.referral_code);
         emailEl.value = data.email || "";
         emailSetEl.value = "";
-        firstNameEl.value = data.first_name || "";
-        lastNameEl.value = data.last_name || "";
-        referralSetEl.value = data.referral_code || "";
-        referredByEl.value = data.referred_by || "";
         addEl.value = "";
         setEl.value = "";
         tierEl.value = "";
         adminToggleEl.checked = !!data.is_admin;
         passEl.value = "";
         passConfirmEl.value = "";
-        onboardingJsonEl.textContent = JSON.stringify(data.onboarding_data || {}, null, 2) || "—";
-        renderOnboardingSummary(data.onboarding_data || {});
       }
 
       async function searchUser() {
@@ -404,10 +250,6 @@
         if (!Number.isNaN(set)) payload.credits_set = set;
         if (tierEl.value) payload.subscription_tier = tierEl.value;
         payload.is_admin_set = !!adminToggleEl.checked;
-        payload.first_name_set = (firstNameEl.value || "").trim();
-        payload.last_name_set = (lastNameEl.value || "").trim();
-        const referralCode = (referralSetEl.value || "").trim();
-        payload.referral_code_set = referralCode;
         const emailSet = (emailSetEl.value || "").trim().toLowerCase();
         if (emailSet) payload.email_set = emailSet;
         const pass = (passEl.value || "").trim();
@@ -440,9 +282,6 @@
 
       function resetForm() {
         emailSetEl.value = "";
-        firstNameEl.value = "";
-        lastNameEl.value = "";
-        referralSetEl.value = "";
         addEl.value = "";
         setEl.value = "";
         tierEl.value = "";
@@ -450,33 +289,6 @@
         passEl.value = "";
         passConfirmEl.value = "";
         statusEl.textContent = "";
-      }
-
-      async function copyOnboarding() {
-        try {
-          await navigator.clipboard.writeText(onboardingJsonEl.textContent || "");
-          statusEl.textContent = "Onboarding JSON copied.";
-        } catch {
-          statusEl.textContent = "Copy failed.";
-        }
-      }
-
-      async function copyReferralLink() {
-        try {
-          await navigator.clipboard.writeText(referralLinkEl.value || "");
-          statusEl.textContent = "Referral link copied.";
-        } catch {
-          statusEl.textContent = "Copy failed.";
-        }
-      }
-
-      function generateReferral() {
-        const letters = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
-        let code = "";
-        for (let i = 0; i < 8; i += 1) {
-          code += letters.charAt(Math.floor(Math.random() * letters.length));
-        }
-        referralSetEl.value = code;
       }
 
       function navigateWithFade(url) {
@@ -492,39 +304,11 @@
         });
       });
 
-      function formatLogItem(log) {
-        const date = formatDate(log.created_at);
-        const target = log.target_email || log.target_id || "—";
-        return `
-          <div class="admin-log">
-            <div>
-              <strong>${log.action}</strong>
-              <span>${target}</span>
-            </div>
-            <time>${date}</time>
-          </div>
-        `;
-      }
-
-      async function loadAuditLogs(skipCheck = false) {
-        if (!skipCheck) {
-          if (!await ensureAdmin()) return;
-        } else if (!adminUnlocked) {
-          return;
-        }
-        logListEl.innerHTML = "<div class=\"subtle\">Loading activity...</div>";
-        try {
-          const res = await fetch(\"https://vnzlaidwxgiaowhxtuvi.functions.supabase.co/admin-audit?limit=50\", {\n            headers: authHeaders()\n          });\n          const text = await res.text();\n          if (!res.ok) {\n            logListEl.innerHTML = `<div class=\"subtle\">Failed to load logs: ${text}</div>`;\n            return;\n          }\n          const data = JSON.parse(text);\n          const logs = data.logs || [];\n          if (!logs.length) {\n            logListEl.innerHTML = \"<div class=\\\"subtle\\\">No activity yet.</div>\";\n            return;\n          }\n          logListEl.innerHTML = logs.map(formatLogItem).join(\"\");\n        } catch (err) {\n          logListEl.innerHTML = `<div class=\"subtle\">Failed to load logs: ${err.message || \"network error\"}</div>`;\n        }\n      }
-
       savePasskeyEl.addEventListener("click", savePasskey);
       checkEl.addEventListener("click", ensureAdmin);
       searchEl.addEventListener("click", searchUser);
       submitEl.addEventListener("click", submitUpdate);
       resetEl.addEventListener("click", resetForm);
-      copyOnboardingEl.addEventListener("click", copyOnboarding);
-      referralCopyEl.addEventListener("click", copyReferralLink);
-      if (generateReferralEl) generateReferralEl.addEventListener("click", generateReferral);
-      refreshLogsEl.addEventListener("click", loadAuditLogs);
 
       loadSession();
       const savedPasskey = getPasskey();
