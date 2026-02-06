@@ -235,6 +235,26 @@
       const onboardingAnswers = {};
 
       let session = null;
+      function parseHashSession() {
+        const hash = window.location.hash || "";
+        if (!hash || hash.length < 2) return;
+        const params = new URLSearchParams(hash.substring(1));
+        const accessToken = params.get("access_token");
+        if (!accessToken) return;
+        const refreshToken = params.get("refresh_token") || "";
+        const expiresAt = params.get("expires_at");
+        const tokenType = params.get("token_type") || "bearer";
+        const nextSession = {
+          access_token: accessToken,
+          refresh_token: refreshToken,
+          expires_at: expiresAt ? parseInt(expiresAt, 10) : undefined,
+          token_type: tokenType
+        };
+        storeSession(nextSession);
+        try {
+          history.replaceState({}, document.title, window.location.pathname + window.location.search);
+        } catch {}
+      }
       function normalizeSession(next) {
         if (!next) return null;
         if (next.session && next.session.access_token) return next.session;
@@ -928,6 +948,7 @@
         if (event.key === "Enter") signIn();
       });
 
+      parseHashSession();
       loadSession();
       setAuthMode("signin");
       updateSessionUI();
