@@ -114,7 +114,13 @@
 
         <div class="card span-2" id="redeem-card">
           <h3>REDEEM A CODE</h3>
-          <p class="subtle">Redeem a one-time code to add credits.</p>
+          <p class="subtle">Each Linkvertise code = 0.1 credit. Reach 10/10 to earn +1 credit.</p>
+          <div class="progress-wrap" id="redeem-progress">
+            <div class="progress-label" id="redeem-progress-label">Progress: 0/10</div>
+            <div class="progress-bar">
+              <div class="progress-fill" id="redeem-progress-fill" style="width:0%"></div>
+            </div>
+          </div>
           <div class="cta-row" style="margin-top: 10px;">
             <a class="btn btn-outline" href="https://direct-link.net/3341015/yjYvSJbYyp1W" target="_blank" rel="noopener">GET A CODE</a>
           </div>
@@ -171,6 +177,9 @@
       const redeemCodeEl = document.getElementById("redeem-code");
       const redeemSubmit = document.getElementById("redeem-submit");
       const redeemStatus = document.getElementById("redeem-status");
+      const redeemProgressWrap = document.getElementById("redeem-progress");
+      const redeemProgressLabel = document.getElementById("redeem-progress-label");
+      const redeemProgressFill = document.getElementById("redeem-progress-fill");
       const redeemCard = document.getElementById("redeem-card");
       const adminCodesCard = document.getElementById("admin-codes");
       const adminAmountEl = document.getElementById("admin-code-amount");
@@ -520,7 +529,7 @@
         }
         const user = await userRes.json();
         const email = user ? user.email : "";
-        const res = await supabaseRequest(`/rest/v1/profiles?select=credits,email,is_admin,referral_code&email=eq.${encodeURIComponent(email)}`, {
+        const res = await supabaseRequest(`/rest/v1/profiles?select=credits,email,is_admin,referral_code,bonus_tenths&email=eq.${encodeURIComponent(email)}`, {
           method: "GET",
           headers: { "Content-Type": "application/json" }
         });
@@ -531,11 +540,13 @@
         const data = await res.json();
         const nextCredits = (data && data[0] && typeof data[0].credits === "number") ? data[0].credits : 0;
         const referralCode = (data && data[0] && data[0].referral_code) ? data[0].referral_code : "—";
+        const bonusTenths = (data && data[0] && typeof data[0].bonus_tenths === "number") ? data[0].bonus_tenths : 0;
         creditsEl.textContent = `Balance: ${nextCredits}`;
         if (referralCodeEl) referralCodeEl.textContent = referralCode;
         billingStatus.textContent = "";
         const isAdmin = !!(data && data[0] && data[0].is_admin);
         if (adminCodesCard) adminCodesCard.classList.toggle("is-hidden", !isAdmin);
+        updateRedeemProgress(bonusTenths);
       }
 
       async function redeemLinkvertiseCode() {
@@ -578,9 +589,11 @@
             redeemStatus.textContent = `Successfully added ${payload.added} credits.`;
           } else if (payload && payload.kind === "linkvertise") {
             if (typeof payload.bonus_tenths === "number") {
-              redeemStatus.textContent = `Successfully added 0.1 credit progress. Progress: 0.${payload.bonus_tenths} (10 = 1 credit).`;
+              redeemStatus.textContent = "Successfully added 0.1 credit progress.";
+              updateRedeemProgress(payload.bonus_tenths);
             } else {
-              redeemStatus.textContent = "Successfully added 0.1 credit progress (10 = 1 credit).";
+              redeemStatus.textContent = "Successfully added 0.1 credit progress.";
+              await refreshCredits();
             }
           } else {
             redeemStatus.textContent = "Redeemed successfully.";
@@ -633,6 +646,13 @@
         } catch (e) {
           if (adminStatus) adminStatus.textContent = `Create failed: ${(e && e.message) || "network error"}`;
         }
+      }
+
+      function updateRedeemProgress(tenths) {
+        if (!redeemProgressWrap || !redeemProgressLabel || !redeemProgressFill) return;
+        const clamped = Math.max(0, Math.min(9, Number(tenths) || 0));
+        redeemProgressLabel.textContent = `Progress: ${clamped}/10`;
+        redeemProgressFill.style.width = `${clamped * 10}%`;
       }
 
       async function copyAdminCode() {
