@@ -794,6 +794,7 @@
         };
 
         async function sendOnboarding() {
+          await ensureSessionReady();
           return fetch("https://vnzlaidwxgiaowhxtuvi.functions.supabase.co/onboarding-submit", {
             method: "POST",
             headers: {
@@ -806,6 +807,7 @@
         }
 
         async function confirmOnboardingSaved() {
+          await ensureSessionReady();
           let profile = await fetchProfile();
           if (profile && profile.onboarding_completed) return true;
           const refreshed = await refreshSession();
