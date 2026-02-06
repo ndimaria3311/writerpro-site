@@ -117,6 +117,7 @@
       const authSpinner = document.getElementById("auth-spinner");
       const loginBtn = document.getElementById("login");
       const signupBtn = document.getElementById("signup");
+      const signupLimitKey = "wp_signup_day";
       const onboardingOverlay = document.getElementById("onboarding-overlay");
       const onboardingForm = document.getElementById("onboarding-form");
       const onboardingStatus = document.getElementById("onb-status");
@@ -536,6 +537,14 @@
       }
 
       async function signUp() {
+        const todayKey = new Date().toISOString().slice(0, 10);
+        try {
+          const last = localStorage.getItem(signupLimitKey);
+          if (last === todayKey) {
+            authStatus.textContent = "Account creation limit reached for this device. Try again tomorrow.";
+            return;
+          }
+        } catch {}
         const email = emailEl.value.trim();
         const password = passwordEl.value;
         const confirm = passwordConfirmEl.value;
@@ -581,6 +590,7 @@
             return;
           }
           try { localStorage.setItem("wp_last_email", email); } catch {}
+          try { localStorage.setItem(signupLimitKey, todayKey); } catch {}
           localStorage.setItem("wp_new_signup", "1");
           if (payload && payload.access_token) {
             storeSession(payload);
