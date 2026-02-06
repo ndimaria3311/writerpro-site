@@ -290,6 +290,24 @@
         }
       }
 
+      function setOnboardingUserId(id) {
+        try {
+          if (id) {
+            localStorage.setItem("wp_onboarding_user_id", id);
+          } else {
+            localStorage.removeItem("wp_onboarding_user_id");
+          }
+        } catch {}
+      }
+
+      function getOnboardingUserId() {
+        try {
+          return localStorage.getItem("wp_onboarding_user_id") || "";
+        } catch {
+          return "";
+        }
+      }
+
       function loadSession() {
         try {
           const raw = localStorage.getItem("wp_session");
@@ -636,6 +654,7 @@
         toggleOnboarding(false);
         clearSession();
         localStorage.removeItem("wp_new_signup");
+        setOnboardingUserId("");
         authStatus.textContent = "Setup cancelled. Please sign in again.";
       });
 
@@ -649,7 +668,8 @@
         const profileRes = await supabaseRequest(`/rest/v1/profiles?id=eq.${userId}&select=onboarding_completed`, { method: "GET" });
         if (!profileRes.ok) return { onboarding_completed: false };
         const rows = await profileRes.json();
-        return rows && rows.length > 0 ? rows[0] : { onboarding_completed: false };
+        const profile = rows && rows.length > 0 ? rows[0] : { onboarding_completed: false };
+        return { ...profile, userId };
       }
 
       async function syncProfileFromAuth() {
@@ -727,6 +747,7 @@
         const newSignup = localStorage.getItem("wp_new_signup") === "1";
         if (profile && profile.onboarding_completed) {
           localStorage.removeItem("wp_new_signup");
+          setOnboardingUserId("");
           await applyReferralIfNeeded();
           authStatus.textContent = "Signed in. Redirecting to dashboard...";
           goToBilling();
@@ -734,13 +755,25 @@
         }
         if (profile && profile.onboarding_completed === false && hasOnboardingDoneFlag()) {
           localStorage.removeItem("wp_new_signup");
+          setOnboardingUserId("");
           await applyReferralIfNeeded();
           authStatus.textContent = "Signed in. Redirecting to dashboard...";
           goToBilling();
           return;
         }
         if (profile && profile.onboarding_completed === false) {
-          toggleOnboarding(true);
+          const allowedId = getOnboardingUserId();
+          if (newSignup && profile.userId) {
+            setOnboardingUserId(profile.userId);
+            toggleOnboarding(true);
+            return;
+          }
+          if (allowedId && profile.userId && allowedId === profile.userId) {
+            toggleOnboarding(true);
+            return;
+          }
+          authStatus.textContent = "Signed in. Redirecting to dashboard...";
+          goToBilling();
           return;
         }
         if (newSignup) {
@@ -859,6 +892,7 @@
         toggleOnboarding(false);
         localStorage.removeItem("wp_new_signup");
         markOnboardingDone();
+        setOnboardingUserId("");
         window.location.href = "download.html";
       }
 
