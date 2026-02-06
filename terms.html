@@ -13,16 +13,16 @@
     <title>Writer Pro — Terms of Service</title>
     <link rel="stylesheet" href="styles.css" />
   </head>
-  <body class="legal-page page-enter">
+  <body class="legal-page">
     <header class="hero legal-hero">
       <nav class="nav">
         <a class="logo" href="index.html">WRITER PRO</a>
         <div class="nav-actions">
-          <a class="btn btn-outline page-link" href="index.html">HOME</a>
-          <a class="btn btn-outline page-link" href="features.html">FEATURES</a>
-          <a class="btn btn-outline page-link" href="pricing.html">PRICING</a>
-          <a class="btn btn-outline page-link" href="support.html">SUPPORT</a>
-          <a class="btn btn-primary page-link" href="download.html">DOWNLOAD</a>
+          <a class="btn btn-outline" href="index.html">HOME</a>
+          <a class="btn btn-outline" href="features.html">FEATURES</a>
+          <a class="btn btn-outline" href="pricing.html">PRICING</a>
+          <a class="btn btn-outline" href="support.html">SUPPORT</a>
+          <a class="btn btn-primary" href="download.html">DOWNLOAD</a>
         </div>
       </nav>
       <div class="hero-grid legal-hero-grid">
@@ -70,20 +70,5 @@
       </div>
       </div>
     </section>
-
-    <script>
-      function navigateWithFade(url) {
-        document.body.classList.add("page-exit");
-        setTimeout(() => { window.location.href = url; }, 240);
-      }
-      document.querySelectorAll(".page-link").forEach((link) => {
-        link.addEventListener("click", (event) => {
-          const href = link.getAttribute("href") || "";
-          if (href.startsWith("#")) return;
-          event.preventDefault();
-          navigateWithFade(href);
-        });
-      });
-    </script>
   </body>
 </html>

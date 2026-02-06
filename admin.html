@@ -11,237 +11,63 @@
     <title>Writer Pro — Admin</title>
     <link rel="stylesheet" href="styles.css" />
   </head>
-  <body class="legal-page admin-page admin-locked page-enter">
+  <body class="legal-page">
     <header class="hero legal-hero">
       <nav class="nav">
         <a class="logo" href="index.html">WRITER PRO</a>
         <div class="nav-actions">
-          <a class="btn btn-outline page-link" href="index.html">HOME</a>
-          <a class="btn btn-outline page-link" href="billing.html">BILLING</a>
-          <a class="btn btn-outline page-link" href="support.html">SUPPORT</a>
+          <a class="btn btn-outline" href="index.html">HOME</a>
+          <a class="btn btn-outline" href="billing.html">BILLING</a>
+          <a class="btn btn-outline" href="support.html">SUPPORT</a>
         </div>
       </nav>
       <div class="hero-grid legal-hero-grid">
         <div class="hero-copy legal-hero-copy">
-          <h1>ADMIN CONTROL ROOM</h1>
-          <p class="subtitle">Secure access. Search, update, and manage user accounts.</p>
+          <h1>ADMIN DASHBOARD</h1>
+          <p class="subtitle">Restricted access — admin accounts only.</p>
         </div>
       </div>
     </header>
 
     <section class="section">
-      <div class="admin-shell">
-        <div class="admin-grid">
-          <div class="admin-panel admin-access-panel">
-            <h3>Access</h3>
-            <p class="subtle">Admin session + passkey are required.</p>
-            <div class="form-stack">
-              <input class="input" id="admin-username" type="text" placeholder="Admin username" />
-              <input class="input" id="admin-passkey" type="password" placeholder="Admin passkey" />
-              <div class="cta-row">
-                <button class="btn btn-primary" id="admin-check">Verify Access</button>
-              </div>
-            </div>
-            <p class="notice" id="admin-access-status"></p>
+      <div class="card admin-card">
+        <h3>Update User</h3>
+        <p class="subtle">Add credits or set subscription tier.</p>
+        <div class="form-stack">
+          <input class="input" id="admin-email" type="email" placeholder="User email" />
+          <div class="two-col">
+            <input class="input" id="admin-credits-add" type="number" placeholder="Credits to add" />
+            <input class="input" id="admin-credits-set" type="number" placeholder="Set credits (optional)" />
           </div>
-
-          <div id="admin-content">
-            <div class="admin-panel">
-              <h3>Lookup</h3>
-              <p class="subtle">Find an account by email.</p>
-              <div class="form-stack">
-                <input class="input" id="admin-search-email" type="email" placeholder="user@email.com" />
-                <div class="cta-row">
-                  <button class="btn btn-primary" id="admin-search">Search User</button>
-                </div>
-              </div>
-              <p class="notice" id="admin-search-status"></p>
-            </div>
-          </div>
+          <select class="input" id="admin-tier">
+            <option value="">Keep current tier</option>
+            <option value="writer">Writer (65)</option>
+            <option value="study">Study (180)</option>
+            <option value="test">Test (430)</option>
+          </select>
         </div>
-
-        <div class="admin-panel admin-panel-wide" id="admin-content-wide">
-          <div class="admin-panel-head">
-            <div>
-              <h3>User Details</h3>
-              <p class="subtle">Edit email, password, credits, tier, and admin access.</p>
-            </div>
-            <div class="admin-pill" id="admin-user-id">No user loaded</div>
-          </div>
-
-          <div class="admin-kpis">
-            <div class="admin-kpi">
-              <span class="label">Email</span>
-              <strong id="admin-user-email">—</strong>
-            </div>
-            <div class="admin-kpi">
-              <span class="label">Credits</span>
-              <strong id="admin-user-credits">—</strong>
-            </div>
-            <div class="admin-kpi">
-              <span class="label">Tier</span>
-              <strong id="admin-user-tier">—</strong>
-            </div>
-            <div class="admin-kpi">
-              <span class="label">Admin</span>
-              <strong id="admin-user-admin">—</strong>
-            </div>
-            <div class="admin-kpi">
-              <span class="label">Referral Code</span>
-              <strong id="admin-user-referral-code">—</strong>
-            </div>
-            <div class="admin-kpi">
-              <span class="label">Code Uses</span>
-              <strong id="admin-user-referral-uses">—</strong>
-            </div>
-          </div>
-
-          <div class="form-stack">
-            <div class="two-col">
-              <input class="input" id="admin-email" type="email" placeholder="Account email" />
-              <input class="input" id="admin-email-set" type="email" placeholder="Set new email" />
-            </div>
-            <div class="two-col">
-              <input class="input" id="admin-credits-add" type="number" placeholder="Credits to add" />
-              <input class="input" id="admin-credits-set" type="number" placeholder="Set credits" />
-            </div>
-            <input class="input" id="admin-referral-code-set" type="text" placeholder="Set referral code (unique)" />
-            <select class="input" id="admin-tier">
-              <option value="">Keep current tier</option>
-              <option value="writer">Writer (65)</option>
-              <option value="study">Study (180)</option>
-              <option value="test">Test (430)</option>
-              <option value="unlimited">Unlimited</option>
-            </select>
-            <label class="input admin-toggle">
-              <span>Admin Access</span>
-              <input type="checkbox" id="admin-is-admin" />
-            </label>
-            <div class="two-col">
-              <input class="input" id="admin-password" type="password" placeholder="Set new password" />
-              <input class="input" id="admin-password-confirm" type="password" placeholder="Confirm new password" />
-            </div>
-            <div class="admin-panel admin-referral-uses">
-              <h4>Manual Purchase</h4>
-              <div class="two-col">
-                <input class="input" id="admin-purchase-pack" type="text" placeholder="Pack ID (optional)" />
-                <input class="input" id="admin-purchase-credits" type="number" placeholder="Credits" />
-              </div>
-              <div class="two-col">
-                <input class="input" id="admin-purchase-amount" type="number" placeholder="Amount (cents)" />
-                <input class="input" id="admin-purchase-currency" type="text" placeholder="Currency (usd)" />
-              </div>
-              <div class="two-col">
-                <input class="input" id="admin-purchase-status" type="text" placeholder="Status (paid)" />
-                <button class="btn btn-outline" id="admin-purchase-add">Add Purchase</button>
-              </div>
-            </div>
-          </div>
-
-          <details class="admin-panel admin-referral-uses">
-            <summary>Referral Uses</summary>
-            <div class="referral-list" id="admin-referral-uses-list">No uses yet.</div>
-          </details>
-
-          <details class="admin-panel admin-referral-uses">
-            <summary>Purchase History</summary>
-            <div class="referral-list" id="admin-purchase-history">No purchases yet.</div>
-          </details>
-
-          <div class="cta-row admin-cta">
-            <button class="btn btn-outline" id="admin-reset-form">Reset</button>
-            <button class="btn btn-primary" id="admin-submit">Apply Changes</button>
-          </div>
-          <p class="notice" id="admin-status"></p>
+        <div class="cta-row" style="margin-top: 12px;">
+          <button class="btn btn-primary" id="admin-submit">Apply Changes</button>
         </div>
-
-        <div class="admin-panel admin-panel-wide" id="admin-content-logs" style="display:none;"></div>
+        <p class="notice" id="admin-status"></p>
       </div>
     </section>
 
     <script>
       const SUPABASE_URL = "https://vnzlaidwxgiaowhxtuvi.supabase.co";
       const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZuemxhaWR3eGdpYW93aHh0dXZpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg4MjcwNzksImV4cCI6MjA4NDQwMzA3OX0.AKiGX3xbgMKtUFYxHKEaAKwacFqmjPEsy56ofU1eDQQ";
-
-      const accessStatusEl = document.getElementById("admin-access-status");
-      const searchStatusEl = document.getElementById("admin-search-status");
       const statusEl = document.getElementById("admin-status");
-      const passkeyEl = document.getElementById("admin-passkey");
-      const usernameEl = document.getElementById("admin-username");
-      const checkEl = document.getElementById("admin-check");
-      const searchEmailEl = document.getElementById("admin-search-email");
-      const searchEl = document.getElementById("admin-search");
-
-      const userIdEl = document.getElementById("admin-user-id");
-      const userEmailEl = document.getElementById("admin-user-email");
-      const userCreditsEl = document.getElementById("admin-user-credits");
-      const userTierEl = document.getElementById("admin-user-tier");
-      const userAdminEl = document.getElementById("admin-user-admin");
-      const userReferralCodeEl = document.getElementById("admin-user-referral-code");
-      const userReferralUsesEl = document.getElementById("admin-user-referral-uses");
-      const referralUsesListEl = document.getElementById("admin-referral-uses-list");
-      const purchaseHistoryEl = document.getElementById("admin-purchase-history");
-
       const emailEl = document.getElementById("admin-email");
-      const emailSetEl = document.getElementById("admin-email-set");
       const addEl = document.getElementById("admin-credits-add");
       const setEl = document.getElementById("admin-credits-set");
-      const referralCodeSetEl = document.getElementById("admin-referral-code-set");
       const tierEl = document.getElementById("admin-tier");
-      const adminToggleEl = document.getElementById("admin-is-admin");
-      const passEl = document.getElementById("admin-password");
-      const passConfirmEl = document.getElementById("admin-password-confirm");
       const submitEl = document.getElementById("admin-submit");
-      const resetEl = document.getElementById("admin-reset-form");
-      const purchasePackEl = document.getElementById("admin-purchase-pack");
-      const purchaseCreditsEl = document.getElementById("admin-purchase-credits");
-      const purchaseAmountEl = document.getElementById("admin-purchase-amount");
-      const purchaseCurrencyEl = document.getElementById("admin-purchase-currency");
-      const purchaseStatusEl = document.getElementById("admin-purchase-status");
-      const purchaseAddEl = document.getElementById("admin-purchase-add");
-      let adminUnlocked = false;
-
-      function setAdminUnlocked(value) {
-        adminUnlocked = value;
-        document.body.classList.toggle("admin-locked", !value);
-      }
 
       let session = null;
-      function normalizeSession(next) {
-        if (!next) return null;
-        if (next.session && next.session.access_token) return next.session;
-        return next;
-      }
-      function ingestSessionFromHash() {
-        const hash = window.location.hash || "";
-        if (!hash || hash.length < 2) return;
-        const params = new URLSearchParams(hash.substring(1));
-        const accessToken = params.get("access_token");
-        if (!accessToken) return;
-        const refreshToken = params.get("refresh_token") || "";
-        const expiresAt = params.get("expires_at");
-        const tokenType = params.get("token_type") || "bearer";
-        const nextSession = {
-          access_token: accessToken,
-          refresh_token: refreshToken,
-          expires_at: expiresAt ? parseInt(expiresAt, 10) : undefined,
-          token_type: tokenType
-        };
-        session = nextSession;
-        try {
-          const serialized = JSON.stringify(nextSession);
-          localStorage.setItem("wp_session", serialized);
-          sessionStorage.setItem("wp_session", serialized);
-          window.name = `wp_session:${serialized}`;
-        } catch {}
-        try {
-          history.replaceState({}, document.title, window.location.pathname + window.location.search);
-        } catch {}
-      }
       function loadSession() {
         try {
           const raw = localStorage.getItem("wp_session") || sessionStorage.getItem("wp_session");
-          if (raw) session = normalizeSession(JSON.parse(raw));
+          if (raw) session = JSON.parse(raw);
         } catch {
           session = null;
         }
@@ -249,212 +75,26 @@
       function hasSessionToken() {
         return !!(session && session.access_token);
       }
-      function isTokenExpired() {
-        if (!session || !session.expires_at) return true;
-        const now = Math.floor(Date.now() / 1000);
-        return now >= (session.expires_at - 45);
-      }
-      async function refreshSession() {
-        if (!session || !session.refresh_token) return false;
-        try {
-          const res = await fetch(`${SUPABASE_URL}/auth/v1/token?grant_type=refresh_token`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json", apikey: SUPABASE_ANON_KEY },
-            body: JSON.stringify({ refresh_token: session.refresh_token })
-          });
-          if (!res.ok) return false;
-          const next = await res.json();
-          if (!next || !next.access_token) return false;
-          session = next;
-          const serialized = JSON.stringify(next);
-          localStorage.setItem("wp_session", serialized);
-          sessionStorage.setItem("wp_session", serialized);
-          window.name = `wp_session:${serialized}`;
-          return true;
-        } catch {
-          return false;
-        }
-      }
-
-      async function ensureSessionReady() {
-        if (hasSessionToken() && !isTokenExpired()) return true;
-        if (session && session.refresh_token) {
-          return await refreshSession();
-        }
-        return false;
-      }
-      function getPasskey() {
-        return (localStorage.getItem("wp_admin_passkey") || "").trim();
-      }
-      function getAdminUser() {
-        return (localStorage.getItem("wp_admin_user") || "").trim();
-      }
-      function setPasskey() {
-        const val = (passkeyEl.value || "").trim();
-        if (!val) {
-          accessStatusEl.textContent = "Enter a passkey first.";
-          return false;
-        }
-        localStorage.setItem("wp_admin_passkey", val);
-        return true;
-      }
-      function setAdminUser() {
-        const val = (usernameEl.value || "").trim();
-        if (!val) {
-          accessStatusEl.textContent = "Enter an admin username.";
-          return false;
-        }
-        localStorage.setItem("wp_admin_user", val);
-        return true;
-      }
-
-      function authHeaders(extra = {}) {
-        return {
-          ...extra,
-          apikey: SUPABASE_ANON_KEY,
-          Authorization: `Bearer ${session.access_token}`,
-          "X-Admin-Passkey": getPasskey(),
-          "X-Admin-User": getAdminUser(),
-        };
-      }
-
       async function ensureAdmin() {
-        const hasUser = setAdminUser();
-        const hasPasskey = setPasskey();
-        accessStatusEl.textContent = "Checking access...";
-        checkEl.disabled = true;
-        setAdminUnlocked(false);
-        await loadSession();
-        const ready = await ensureSessionReady();
-        if (!ready) {
-          window.location.href = "app.html?next=admin.html&skip_onboarding=1";
-          checkEl.disabled = false;
+        if (!hasSessionToken()) {
+          window.location.href = "app.html?next=admin.html";
           return false;
         }
-        if (!hasUser || !getAdminUser()) {
-          accessStatusEl.textContent = "Missing admin username.";
-          checkEl.disabled = false;
+        const res = await fetch("https://vnzlaidwxgiaowhxtuvi.functions.supabase.co/admin-check", {
+          headers: {
+            apikey: SUPABASE_ANON_KEY,
+            Authorization: `Bearer ${session.access_token}`
+          }
+        });
+        if (!res.ok) {
+          statusEl.textContent = "Access denied. Admin only.";
+          submitEl.disabled = true;
           return false;
         }
-        if (!hasPasskey || !getPasskey()) {
-          accessStatusEl.textContent = "Missing passkey.";
-          checkEl.disabled = false;
-          return false;
-        }
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 12000);
-        try {
-          let res = await fetch("https://vnzlaidwxgiaowhxtuvi.functions.supabase.co/admin-check", {
-            headers: authHeaders(),
-            signal: controller.signal
-          });
-          if (res.status === 401) {
-            const refreshed = await refreshSession();
-            if (refreshed) {
-              res = await fetch("https://vnzlaidwxgiaowhxtuvi.functions.supabase.co/admin-check", {
-                headers: authHeaders(),
-                signal: controller.signal
-              });
-            }
-          }
-          clearTimeout(timeoutId);
-          if (!res.ok) {
-            const text = await res.text();
-            accessStatusEl.textContent = `Access denied: ${text}`;
-            submitEl.disabled = true;
-            checkEl.disabled = false;
-            return false;
-          }
-          accessStatusEl.textContent = "Admin access confirmed.";
-          submitEl.disabled = false;
-          setAdminUnlocked(true);
-          checkEl.disabled = false;
-          return true;
-        } catch (err) {
-          clearTimeout(timeoutId);
-          accessStatusEl.textContent = `Access check failed: ${err?.message || "network error"}`;
-          checkEl.disabled = false;
-          return false;
-        }
-      }
-
-      function setUserDetails(data) {
-        userIdEl.textContent = data.id ? `ID: ${data.id}` : "No user loaded";
-        if (userEmailEl) userEmailEl.textContent = data.email || "—";
-        if (userCreditsEl) userCreditsEl.textContent = typeof data.credits === "number" ? data.credits.toLocaleString() : "—";
-        if (userTierEl) userTierEl.textContent = data.subscription_tier || "—";
-        if (userAdminEl) userAdminEl.textContent = data.is_admin ? "Yes" : "No";
-        if (userReferralCodeEl) userReferralCodeEl.textContent = data.referral_code || "—";
-        if (userReferralUsesEl) userReferralUsesEl.textContent = typeof data.referral_uses_count === "number" ? data.referral_uses_count.toString() : "—";
-        if (referralUsesListEl) {
-          if (Array.isArray(data.referral_uses_emails) && data.referral_uses_emails.length) {
-            referralUsesListEl.innerHTML = data.referral_uses_emails.map((email) => `<div class="referral-item">${email}</div>`).join("");
-          } else {
-            referralUsesListEl.textContent = "No uses yet.";
-          }
-        }
-        if (purchaseHistoryEl) {
-          if (Array.isArray(data.purchase_history) && data.purchase_history.length) {
-            purchaseHistoryEl.innerHTML = data.purchase_history.map((entry) => {
-              const amount = typeof entry.amount_cents === "number" ? (entry.amount_cents / 100).toFixed(2) : "—";
-              const currency = entry.currency ? entry.currency.toUpperCase() : "USD";
-              const credits = typeof entry.credits === "number" ? entry.credits.toLocaleString() : "—";
-              const pack = entry.pack_id || "Manual";
-              const status = entry.status || "paid";
-              return `<div class="referral-item">${pack} • ${credits} credits • ${currency} ${amount} • ${status}</div>`;
-            }).join("");
-          } else {
-            purchaseHistoryEl.textContent = "No purchases yet.";
-          }
-        }
-        emailEl.value = data.email || "";
-        emailSetEl.value = "";
-        addEl.value = "";
-        setEl.value = "";
-        if (referralCodeSetEl) referralCodeSetEl.value = "";
-        tierEl.value = "";
-        adminToggleEl.checked = !!data.is_admin;
-        passEl.value = "";
-        passConfirmEl.value = "";
-        if (purchasePackEl) purchasePackEl.value = "";
-        if (purchaseCreditsEl) purchaseCreditsEl.value = "";
-        if (purchaseAmountEl) purchaseAmountEl.value = "";
-        if (purchaseCurrencyEl) purchaseCurrencyEl.value = "";
-        if (purchaseStatusEl) purchaseStatusEl.value = "";
-      }
-
-      async function searchUser() {
-        searchStatusEl.textContent = "Searching...";
-        const email = (searchEmailEl.value || "").trim().toLowerCase();
-        if (!email) {
-          searchStatusEl.textContent = "Enter an email.";
-          return;
-        }
-        if (!await ensureAdmin()) return;
-        try {
-          const res = await fetch("https://vnzlaidwxgiaowhxtuvi.functions.supabase.co/admin-search", {
-            method: "POST",
-            headers: authHeaders({ "Content-Type": "application/json" }),
-            body: JSON.stringify({ email })
-          });
-          const text = await res.text();
-          if (!res.ok) {
-            searchStatusEl.textContent = `Search failed: ${text}`;
-            return;
-          }
-          const data = JSON.parse(text);
-          searchStatusEl.textContent = `Loaded ${data.email}`;
-          setUserDetails(data);
-        } catch (err) {
-          searchStatusEl.textContent = `Search failed: ${err.message || "network error"}`;
-        }
+        return true;
       }
 
       async function submitUpdate() {
-        if (!adminUnlocked) {
-          accessStatusEl.textContent = "Verify access first.";
-          return;
-        }
         statusEl.textContent = "Updating...";
         const payload = {
           email: (emailEl.value || "").trim().toLowerCase()
@@ -464,24 +104,15 @@
         if (!Number.isNaN(add)) payload.credits_add = add;
         if (!Number.isNaN(set)) payload.credits_set = set;
         if (tierEl.value) payload.subscription_tier = tierEl.value;
-        payload.is_admin_set = !!adminToggleEl.checked;
-        const emailSet = (emailSetEl.value || "").trim().toLowerCase();
-        if (emailSet) payload.email_set = emailSet;
-        const referralSet = (referralCodeSetEl.value || "").trim();
-        if (referralSet) payload.referral_code_set = referralSet;
-        const pass = (passEl.value || "").trim();
-        if (pass) {
-          if (pass !== (passConfirmEl.value || "").trim()) {
-            statusEl.textContent = "Passwords do not match.";
-            return;
-          }
-          payload.password_set = pass;
-        }
 
         try {
           const res = await fetch("https://vnzlaidwxgiaowhxtuvi.functions.supabase.co/admin-update-user", {
             method: "POST",
-            headers: authHeaders({ "Content-Type": "application/json" }),
+            headers: {
+              "Content-Type": "application/json",
+              apikey: SUPABASE_ANON_KEY,
+              Authorization: `Bearer ${session.access_token}`
+            },
             body: JSON.stringify(payload)
           });
           const text = await res.text();
@@ -491,92 +122,14 @@
           }
           const data = JSON.parse(text);
           statusEl.textContent = `Updated ${data.email} → ${data.credits} credits, tier ${data.subscription_tier}`;
-          setUserDetails(data);
         } catch (err) {
           statusEl.textContent = `Update failed: ${err.message || "network error"}`;
         }
       }
 
-      async function addPurchase() {
-        if (!adminUnlocked) {
-          accessStatusEl.textContent = "Verify access first.";
-          return;
-        }
-        const email = (emailEl.value || "").trim().toLowerCase();
-        if (!email) {
-          statusEl.textContent = "Load a user before adding a purchase.";
-          return;
-        }
-        const credits = parseInt(purchaseCreditsEl.value || "", 10);
-        const amount = parseInt(purchaseAmountEl.value || "", 10);
-        const payload = {
-          email,
-          purchase_add: {
-            pack_id: (purchasePackEl.value || "").trim(),
-            credits: Number.isNaN(credits) ? null : credits,
-            amount_cents: Number.isNaN(amount) ? null : amount,
-            currency: (purchaseCurrencyEl.value || "usd").trim().toLowerCase(),
-            status: (purchaseStatusEl.value || "paid").trim()
-          }
-        };
-        statusEl.textContent = "Adding purchase...";
-        try {
-          const res = await fetch("https://vnzlaidwxgiaowhxtuvi.functions.supabase.co/admin-update-user", {
-            method: "POST",
-            headers: authHeaders({ "Content-Type": "application/json" }),
-            body: JSON.stringify(payload)
-          });
-          const text = await res.text();
-          if (!res.ok) {
-            statusEl.textContent = `Add purchase failed: ${text}`;
-            return;
-          }
-          statusEl.textContent = "Purchase added. Re-search to refresh history.";
-          purchaseCreditsEl.value = "";
-          purchaseAmountEl.value = "";
-        } catch (err) {
-          statusEl.textContent = `Add purchase failed: ${err.message || "network error"}`;
-        }
-      }
-
-      function resetForm() {
-        emailSetEl.value = "";
-        addEl.value = "";
-        setEl.value = "";
-        if (referralCodeSetEl) referralCodeSetEl.value = "";
-        tierEl.value = "";
-        adminToggleEl.checked = false;
-        passEl.value = "";
-        passConfirmEl.value = "";
-        statusEl.textContent = "";
-        if (purchaseCreditsEl) purchaseCreditsEl.value = "";
-        if (purchaseAmountEl) purchaseAmountEl.value = "";
-      }
-
-      function navigateWithFade(url) {
-        document.body.classList.add("page-exit");
-        setTimeout(() => { window.location.href = url; }, 240);
-      }
-      document.querySelectorAll(".page-link").forEach((link) => {
-        link.addEventListener("click", (event) => {
-          const href = link.getAttribute("href") || "";
-          if (href.startsWith("#")) return;
-          event.preventDefault();
-          navigateWithFade(href);
-        });
-      });
-
-      checkEl.addEventListener("click", ensureAdmin);
-      searchEl.addEventListener("click", searchUser);
       submitEl.addEventListener("click", submitUpdate);
-      resetEl.addEventListener("click", resetForm);
-      if (purchaseAddEl) purchaseAddEl.addEventListener("click", addPurchase);
-
-      ingestSessionFromHash();
       loadSession();
-      if (usernameEl) usernameEl.value = "";
-      passkeyEl.value = "";
-      setAdminUnlocked(false);
+      ensureAdmin();
     </script>
   </body>
 </html>
