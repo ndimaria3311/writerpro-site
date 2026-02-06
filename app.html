@@ -975,7 +975,9 @@
         localStorage.removeItem("wp_new_signup");
         markOnboardingDone(getIdentityKey(getOnboardingUserId()));
         setOnboardingUserId("");
-        window.location.href = "download.html";
+        const tokenHash = buildTokenHash();
+        const target = tokenHash ? appendHash("download.html", tokenHash) : "download.html";
+        window.location.href = target;
       }
 
       onboardingForm.addEventListener("submit", submitOnboarding);
