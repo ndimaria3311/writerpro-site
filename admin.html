@@ -155,6 +155,27 @@
           <p class="notice" id="admin-status"></p>
         </div>
 
+        <div class="admin-panel admin-panel-wide" id="admin-code-panel">
+          <div class="admin-panel-head">
+            <div>
+              <h3>Generate Credit Code</h3>
+              <p class="subtle">Create a one-time code that adds credits to the redeemer.</p>
+            </div>
+          </div>
+          <div class="form-stack">
+            <div class="two-col">
+              <input class="input" id="admin-code-amount" type="number" min="1" step="1" placeholder="Amount (credits)" />
+              <input class="input" id="admin-code-note" type="text" maxlength="140" placeholder="Note (optional)" />
+            </div>
+            <button class="btn btn-outline" id="admin-code-create" type="button">Create Code</button>
+            <p class="notice" id="admin-code-status"></p>
+            <div class="form-stack is-hidden" id="admin-code-result">
+              <input class="input" id="admin-code-output" type="text" readonly />
+              <button class="btn btn-primary" id="admin-code-copy" type="button">Copy Code</button>
+            </div>
+          </div>
+        </div>
+
         <div class="admin-panel admin-panel-wide" id="admin-content-logs" style="display:none;"></div>
       </div>
     </section>
@@ -199,6 +220,13 @@
       const purchaseCurrencyEl = document.getElementById("admin-purchase-currency");
       const purchaseStatusEl = document.getElementById("admin-purchase-status");
       const purchaseAddEl = document.getElementById("admin-purchase-add");
+      const adminCodeAmountEl = document.getElementById("admin-code-amount");
+      const adminCodeNoteEl = document.getElementById("admin-code-note");
+      const adminCodeCreateEl = document.getElementById("admin-code-create");
+      const adminCodeStatusEl = document.getElementById("admin-code-status");
+      const adminCodeResultEl = document.getElementById("admin-code-result");
+      const adminCodeOutputEl = document.getElementById("admin-code-output");
+      const adminCodeCopyEl = document.getElementById("admin-code-copy");
       let adminUnlocked = false;
 
       function setAdminUnlocked(value) {
@@ -553,6 +581,60 @@
         if (purchaseAmountEl) purchaseAmountEl.value = "";
       }
 
+      async function createCreditCode() {
+        if (!adminUnlocked) {
+          if (adminCodeStatusEl) adminCodeStatusEl.textContent = "Verify admin access first.";
+          return;
+        }
+        const amount = Math.floor(Number(adminCodeAmountEl && adminCodeAmountEl.value ? adminCodeAmountEl.value : 0));
+        if (!Number.isFinite(amount) || amount <= 0) {
+          if (adminCodeStatusEl) adminCodeStatusEl.textContent = "Enter a valid amount.";
+          return;
+        }
+        const note = (adminCodeNoteEl && adminCodeNoteEl.value ? adminCodeNoteEl.value : "").trim();
+        if (adminCodeStatusEl) adminCodeStatusEl.textContent = "Creating code...";
+        if (adminCodeResultEl) adminCodeResultEl.classList.add("is-hidden");
+        try {
+          const res = await fetch("https://vnzlaidwxgiaowhxtuvi.functions.supabase.co/admin-generate-credit-code", {
+            method: "POST",
+            headers: authHeaders({ "Content-Type": "application/json" }),
+            body: JSON.stringify({ amount, note })
+          });
+          const text = await res.text();
+          if (!res.ok) {
+            if (adminCodeStatusEl) adminCodeStatusEl.textContent = text ? text : `Create failed (HTTP ${res.status}).`;
+            return;
+          }
+          const payload = JSON.parse(text);
+          if (!payload || !payload.code) {
+            if (adminCodeStatusEl) adminCodeStatusEl.textContent = "Create failed: missing code.";
+            return;
+          }
+          if (adminCodeOutputEl) adminCodeOutputEl.value = payload.code;
+          if (adminCodeResultEl) adminCodeResultEl.classList.remove("is-hidden");
+          if (adminCodeStatusEl) adminCodeStatusEl.textContent = `Created code for ${payload.amount} credits.`;
+        } catch (err) {
+          if (adminCodeStatusEl) adminCodeStatusEl.textContent = `Create failed: ${err.message || "network error"}`;
+        }
+      }
+
+      async function copyCreditCode() {
+        const text = adminCodeOutputEl && adminCodeOutputEl.value ? adminCodeOutputEl.value : "";
+        if (!text) return;
+        try {
+          await navigator.clipboard.writeText(text);
+          if (adminCodeCopyEl) {
+            adminCodeCopyEl.textContent = "Copied";
+            setTimeout(() => { adminCodeCopyEl.textContent = "Copy Code"; }, 1200);
+          }
+        } catch {
+          if (adminCodeCopyEl) {
+            adminCodeCopyEl.textContent = "Copy failed";
+            setTimeout(() => { adminCodeCopyEl.textContent = "Copy Code"; }, 1200);
+          }
+        }
+      }
+
       function navigateWithFade(url) {
         document.body.classList.add("page-exit");
         setTimeout(() => { window.location.href = url; }, 240);
@@ -571,6 +653,8 @@
       submitEl.addEventListener("click", submitUpdate);
       resetEl.addEventListener("click", resetForm);
       if (purchaseAddEl) purchaseAddEl.addEventListener("click", addPurchase);
+      if (adminCodeCreateEl) adminCodeCreateEl.addEventListener("click", createCreditCode);
+      if (adminCodeCopyEl) adminCodeCopyEl.addEventListener("click", copyCreditCode);
 
       ingestSessionFromHash();
       loadSession();

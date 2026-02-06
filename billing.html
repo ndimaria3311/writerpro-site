@@ -131,22 +131,6 @@
           </div>
         </div>
 
-        <div class="card span-2 is-hidden" id="admin-codes">
-          <h3>ADMIN: GENERATE CODE</h3>
-          <p class="subtle">Create a one-time code that adds credits to the redeemer.</p>
-          <div class="form-stack" style="margin-top: 10px;">
-            <div class="two-col">
-              <input class="input" id="admin-code-amount" type="number" min="1" step="1" placeholder="Amount (credits)" />
-              <input class="input" id="admin-code-note" type="text" maxlength="140" placeholder="Note (optional)" />
-            </div>
-            <button class="btn btn-outline" id="admin-code-create" type="button">Create Code</button>
-            <p class="notice" id="admin-code-status"></p>
-            <div class="form-stack is-hidden" id="admin-code-result">
-              <input class="input" id="admin-code-output" type="text" readonly />
-              <button class="btn btn-primary" id="admin-code-copy" type="button">Copy Code</button>
-            </div>
-          </div>
-        </div>
       </div>
     </section>
 
@@ -181,14 +165,6 @@
       const redeemProgressLabel = document.getElementById("redeem-progress-label");
       const redeemProgressFill = document.getElementById("redeem-progress-fill");
       const redeemCard = document.getElementById("redeem-card");
-      const adminCodesCard = document.getElementById("admin-codes");
-      const adminAmountEl = document.getElementById("admin-code-amount");
-      const adminNoteEl = document.getElementById("admin-code-note");
-      const adminCreateBtn = document.getElementById("admin-code-create");
-      const adminStatus = document.getElementById("admin-code-status");
-      const adminResult = document.getElementById("admin-code-result");
-      const adminOutput = document.getElementById("admin-code-output");
-      const adminCopy = document.getElementById("admin-code-copy");
       const currentPassword = document.getElementById("current-password");
       const newPassword = document.getElementById("new-password");
       const confirmPassword = document.getElementById("confirm-password");
@@ -544,8 +520,6 @@
         creditsEl.textContent = `Balance: ${nextCredits}`;
         if (referralCodeEl) referralCodeEl.textContent = referralCode;
         billingStatus.textContent = "";
-        const isAdmin = !!(data && data[0] && data[0].is_admin);
-        if (adminCodesCard) adminCodesCard.classList.toggle("is-hidden", !isAdmin);
         updateRedeemProgress(bonusTenths);
       }
 
@@ -604,49 +578,6 @@
         }
       }
 
-      async function adminCreateCode() {
-        if (!hasSessionToken()) {
-          if (adminStatus) adminStatus.textContent = "Sign in required.";
-          navigateWithFade("app.html?next=billing.html");
-          return;
-        }
-        const amount = Math.floor(Number(adminAmountEl && adminAmountEl.value ? adminAmountEl.value : 0));
-        if (!Number.isFinite(amount) || amount <= 0) {
-          if (adminStatus) adminStatus.textContent = "Enter a valid amount.";
-          return;
-        }
-        const note = (adminNoteEl && adminNoteEl.value ? adminNoteEl.value : "").trim();
-        if (adminStatus) adminStatus.textContent = "Creating code...";
-        if (adminResult) adminResult.classList.add("is-hidden");
-        const fresh = await ensureFreshSession();
-        if (!fresh) {
-          if (adminStatus) adminStatus.textContent = "Session expired. Please sign in again.";
-          navigateWithFade("app.html?next=billing.html&signed_out=1");
-          return;
-        }
-        try {
-          const res = await fetch("https://vnzlaidwxgiaowhxtuvi.functions.supabase.co/admin-generate-credit-code", {
-            method: "POST",
-            headers: { "Content-Type": "application/json", Authorization: `Bearer ${session.access_token}` },
-            body: JSON.stringify({ amount, note })
-          });
-          if (!res.ok) {
-            const text = (await res.text()) || "";
-            if (adminStatus) adminStatus.textContent = text ? text : `Create failed (HTTP ${res.status}).`;
-            return;
-          }
-          const payload = await res.json();
-          if (!payload || !payload.code) {
-            if (adminStatus) adminStatus.textContent = "Create failed: missing code.";
-            return;
-          }
-          if (adminOutput) adminOutput.value = payload.code;
-          if (adminResult) adminResult.classList.remove("is-hidden");
-          if (adminStatus) adminStatus.textContent = `Created code for ${payload.amount} credits.`;
-        } catch (e) {
-          if (adminStatus) adminStatus.textContent = `Create failed: ${(e && e.message) || "network error"}`;
-        }
-      }
 
       function updateRedeemProgress(tenths) {
         if (!redeemProgressWrap || !redeemProgressLabel || !redeemProgressFill) return;
@@ -655,22 +586,6 @@
         redeemProgressFill.style.width = `${clamped * 10}%`;
       }
 
-      async function copyAdminCode() {
-        const text = adminOutput && adminOutput.value ? adminOutput.value : "";
-        if (!text) return;
-        try {
-          await navigator.clipboard.writeText(text);
-          if (adminCopy) {
-            adminCopy.textContent = "Copied";
-            setTimeout(() => { adminCopy.textContent = "Copy Code"; }, 1200);
-          }
-        } catch {
-          if (adminCopy) {
-            adminCopy.textContent = "Copy failed";
-            setTimeout(() => { adminCopy.textContent = "Copy Code"; }, 1200);
-          }
-        }
-      }
 
       async function openPortal() {
         if (!hasSessionToken()) {
@@ -736,8 +651,6 @@
 
       buyButtons.forEach((btn) => btn.addEventListener("click", () => startCheckout(btn.dataset.pack)));
       if (redeemSubmit) redeemSubmit.addEventListener("click", redeemLinkvertiseCode);
-      if (adminCreateBtn) adminCreateBtn.addEventListener("click", adminCreateCode);
-      if (adminCopy) adminCopy.addEventListener("click", copyAdminCode);
       portalButton.addEventListener("click", openPortal);
       refreshButton.addEventListener("click", refreshCredits);
       if (settingsSave) settingsSave.addEventListener("click", saveSettings);
