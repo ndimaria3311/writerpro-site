@@ -292,52 +292,62 @@
         storeSession(null);
       }
 
-      function onboardingDoneKey(userId) {
-        return `wp_onboarding_done_${userId || "unknown"}`;
+      function onboardingDoneKey(identity) {
+        return `wp_onboarding_done_${identity || "unknown"}`;
       }
 
-      function markOnboardingDone(userId) {
-        if (!userId) return;
+      function markOnboardingDone(identity) {
+        if (!identity) return;
         try {
-          localStorage.setItem(onboardingDoneKey(userId), "1");
+          localStorage.setItem(onboardingDoneKey(identity), "1");
         } catch {}
       }
 
-      function hasOnboardingDoneFlag(userId) {
-        if (!userId) return false;
+      function hasOnboardingDoneFlag(identity) {
+        if (!identity) return false;
         try {
-          return localStorage.getItem(onboardingDoneKey(userId)) === "1";
+          return localStorage.getItem(onboardingDoneKey(identity)) === "1";
         } catch {
           return false;
         }
       }
 
-      function pendingOnboardingKey(userId) {
-        return `wp_onboarding_pending_${userId || "unknown"}`;
+      function pendingOnboardingKey(identity) {
+        return `wp_onboarding_pending_${identity || "unknown"}`;
       }
 
-      function setPendingOnboarding(userId, data) {
-        if (!userId) return;
+      function setPendingOnboarding(identity, data) {
+        if (!identity) return;
         try {
-          localStorage.setItem(pendingOnboardingKey(userId), JSON.stringify(data || {}));
+          localStorage.setItem(pendingOnboardingKey(identity), JSON.stringify(data || {}));
         } catch {}
       }
 
-      function getPendingOnboarding(userId) {
-        if (!userId) return null;
+      function getPendingOnboarding(identity) {
+        if (!identity) return null;
         try {
-          const raw = localStorage.getItem(pendingOnboardingKey(userId));
+          const raw = localStorage.getItem(pendingOnboardingKey(identity));
           return raw ? JSON.parse(raw) : null;
         } catch {
           return null;
         }
       }
 
-      function clearPendingOnboarding(userId) {
-        if (!userId) return;
+      function clearPendingOnboarding(identity) {
+        if (!identity) return;
         try {
-          localStorage.removeItem(pendingOnboardingKey(userId));
+          localStorage.removeItem(pendingOnboardingKey(identity));
         } catch {}
+      }
+
+      function getIdentityKey(userId) {
+        if (userId) return userId;
+        try {
+          const lastEmail = localStorage.getItem("wp_last_email");
+          return lastEmail || "";
+        } catch {
+          return "";
+        }
       }
 
       function setOnboardingUserId(id) {
@@ -491,6 +501,7 @@
             authStatus.textContent = "Sign in failed: invalid session response.";
             return;
           }
+          try { localStorage.setItem("wp_last_email", email); } catch {}
           storeSession(payload);
           if (!hasSessionToken()) {
             authStatus.textContent = "Sign in failed: invalid session response.";
@@ -551,6 +562,7 @@
             authStatus.textContent = detail ? `Sign up failed: ${detail}` : "Sign up failed.";
             return;
           }
+          try { localStorage.setItem("wp_last_email", email); } catch {}
           localStorage.setItem("wp_new_signup", "1");
           if (payload && payload.access_token) {
             storeSession(payload);
@@ -804,11 +816,12 @@
         const profile = await fetchProfile();
         const newSignup = localStorage.getItem("wp_new_signup") === "1";
         const userId = profile?.userId || "";
-        const pending = getPendingOnboarding(userId);
+        const identityKey = getIdentityKey(userId);
+        const pending = getPendingOnboarding(identityKey);
         if (profile && profile.onboarding_completed) {
           localStorage.removeItem("wp_new_signup");
           setOnboardingUserId("");
-          clearPendingOnboarding(userId);
+          clearPendingOnboarding(identityKey);
           await applyReferralIfNeeded();
           authStatus.textContent = "Signed in. Redirecting to dashboard...";
           goToBilling();
@@ -826,11 +839,11 @@
               },
               body: JSON.stringify({ data: pending })
             });
-            markOnboardingDone(userId);
-            clearPendingOnboarding(userId);
+            markOnboardingDone(identityKey);
+            clearPendingOnboarding(identityKey);
           } catch {}
         }
-        if (profile && profile.onboarding_completed === false && hasOnboardingDoneFlag(userId)) {
+        if (profile && profile.onboarding_completed === false && hasOnboardingDoneFlag(identityKey)) {
           localStorage.removeItem("wp_new_signup");
           setOnboardingUserId("");
           await applyReferralIfNeeded();
@@ -888,11 +901,12 @@
           device: onboardingAnswers.device || ""
         };
         const userId = getOnboardingUserId();
+        const identityKey = getIdentityKey(userId);
 
         async function sendOnboarding() {
           await ensureSessionReady();
           if (!hasSessionToken()) {
-            setPendingOnboarding(userId, payload);
+            setPendingOnboarding(identityKey, payload);
             return { ok: false, status: 0, text: async () => "session missing" };
           }
           return fetch("https://vnzlaidwxgiaowhxtuvi.functions.supabase.co/onboarding-submit", {
@@ -934,21 +948,21 @@
                   return finishOnboarding();
                 }
               }
-              setPendingOnboarding(userId, payload);
+              setPendingOnboarding(identityKey, payload);
               return finishOnboarding();
             }
             const text = await res.text();
-            setPendingOnboarding(userId, payload);
+            setPendingOnboarding(identityKey, payload);
             return finishOnboarding();
           }
           const confirmed = await confirmOnboardingSaved();
           if (!confirmed) {
-            setPendingOnboarding(userId, payload);
+            setPendingOnboarding(identityKey, payload);
             return finishOnboarding();
           }
           return finishOnboarding();
         } catch (error) {
-          setPendingOnboarding(userId, payload);
+          setPendingOnboarding(identityKey, payload);
           return finishOnboarding();
         } finally {
           onboardingSubmit.disabled = false;
@@ -959,7 +973,7 @@
         onboardingStatus.textContent = "Saved! Redirecting...";
         toggleOnboarding(false);
         localStorage.removeItem("wp_new_signup");
-        markOnboardingDone(getOnboardingUserId());
+        markOnboardingDone(getIdentityKey(getOnboardingUserId()));
         setOnboardingUserId("");
         window.location.href = "download.html";
       }
