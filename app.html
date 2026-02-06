@@ -677,6 +677,10 @@
           goToBilling();
           return;
         }
+        if (profile && profile.onboarding_completed === false) {
+          toggleOnboarding(true);
+          return;
+        }
         if (newSignup) {
           toggleOnboarding(true);
         } else {
