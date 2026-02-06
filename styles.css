@@ -1144,6 +1144,16 @@ body.reduced-motion * {
   gap: 16px;
 }
 
+.admin-locked .admin-grid {
+  grid-template-columns: 1fr;
+}
+
+.admin-locked #admin-content,
+.admin-locked #admin-content-wide,
+.admin-locked #admin-content-logs {
+  display: none;
+}
+
 .admin-panel {
   background: var(--surface);
   border: 1px solid var(--border);

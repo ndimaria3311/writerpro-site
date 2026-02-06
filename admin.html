@@ -11,7 +11,7 @@
     <title>Writer Pro — Admin</title>
     <link rel="stylesheet" href="styles.css" />
   </head>
-  <body class="legal-page admin-page page-enter">
+  <body class="legal-page admin-page admin-locked page-enter">
     <header class="hero legal-hero">
       <nav class="nav">
         <a class="logo" href="index.html">WRITER PRO</a>
@@ -45,20 +45,22 @@
             <p class="notice" id="admin-access-status"></p>
           </div>
 
-          <div class="admin-panel">
-            <h3>Lookup</h3>
-            <p class="subtle">Find an account by email.</p>
-            <div class="form-stack">
-              <input class="input" id="admin-search-email" type="email" placeholder="user@email.com" />
-              <div class="cta-row">
-                <button class="btn btn-primary" id="admin-search">Search User</button>
+          <div id="admin-content">
+            <div class="admin-panel">
+              <h3>Lookup</h3>
+              <p class="subtle">Find an account by email.</p>
+              <div class="form-stack">
+                <input class="input" id="admin-search-email" type="email" placeholder="user@email.com" />
+                <div class="cta-row">
+                  <button class="btn btn-primary" id="admin-search">Search User</button>
+                </div>
               </div>
+              <p class="notice" id="admin-search-status"></p>
             </div>
-            <p class="notice" id="admin-search-status"></p>
           </div>
         </div>
 
-        <div class="admin-panel admin-panel-wide">
+        <div class="admin-panel admin-panel-wide" id="admin-content-wide">
           <div class="admin-panel-head">
             <div>
               <h3>User Details</h3>
@@ -167,7 +169,7 @@
           <p class="notice" id="admin-status"></p>
         </div>
 
-        <div class="admin-panel admin-panel-wide">
+        <div class="admin-panel admin-panel-wide" id="admin-content-logs">
           <div class="admin-panel-head">
             <div>
               <h3>Recent Activity</h3>
@@ -227,6 +229,12 @@
       const copyOnboardingEl = document.getElementById("admin-copy-onboarding");
       const refreshLogsEl = document.getElementById("admin-refresh-logs");
       const logListEl = document.getElementById("admin-log-list");
+      let adminUnlocked = false;
+
+      function setAdminUnlocked(value) {
+        adminUnlocked = value;
+        document.body.classList.toggle("admin-locked", !value);
+      }
 
       let session = null;
       function loadSession() {
@@ -264,6 +272,7 @@
 
       async function ensureAdmin() {
         accessStatusEl.textContent = "Checking access...";
+        setAdminUnlocked(false);
         if (!hasSessionToken()) {
           window.location.href = "app.html?next=admin.html";
           return false;
@@ -283,6 +292,8 @@
         }
         accessStatusEl.textContent = "Admin access confirmed.";
         submitEl.disabled = false;
+        setAdminUnlocked(true);
+        loadAuditLogs(true);
         return true;
       }
 
@@ -379,6 +390,10 @@
       }
 
       async function submitUpdate() {
+        if (!adminUnlocked) {
+          accessStatusEl.textContent = "Verify access first.";
+          return;
+        }
         statusEl.textContent = "Updating...";
         const payload = {
           email: (emailEl.value || "").trim().toLowerCase()
@@ -491,8 +506,12 @@
         `;
       }
 
-      async function loadAuditLogs() {
-        if (!await ensureAdmin()) return;
+      async function loadAuditLogs(skipCheck = false) {
+        if (!skipCheck) {
+          if (!await ensureAdmin()) return;
+        } else if (!adminUnlocked) {
+          return;
+        }
         logListEl.innerHTML = "<div class=\"subtle\">Loading activity...</div>";
         try {
           const res = await fetch(\"https://vnzlaidwxgiaowhxtuvi.functions.supabase.co/admin-audit?limit=50\", {\n            headers: authHeaders()\n          });\n          const text = await res.text();\n          if (!res.ok) {\n            logListEl.innerHTML = `<div class=\"subtle\">Failed to load logs: ${text}</div>`;\n            return;\n          }\n          const data = JSON.parse(text);\n          const logs = data.logs || [];\n          if (!logs.length) {\n            logListEl.innerHTML = \"<div class=\\\"subtle\\\">No activity yet.</div>\";\n            return;\n          }\n          logListEl.innerHTML = logs.map(formatLogItem).join(\"\");\n        } catch (err) {\n          logListEl.innerHTML = `<div class=\"subtle\">Failed to load logs: ${err.message || \"network error\"}</div>`;\n        }\n      }
@@ -510,8 +529,7 @@
       loadSession();
       const savedPasskey = getPasskey();
       if (savedPasskey) passkeyEl.value = savedPasskey;
-      ensureAdmin();
-      loadAuditLogs();
+      setAdminUnlocked(false);
     </script>
   </body>
 </html>
