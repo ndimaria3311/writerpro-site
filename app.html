@@ -560,9 +560,17 @@
         onboardingOverlay.classList.toggle("active", show);
         onboardingOverlay.setAttribute("aria-hidden", show ? "false" : "true");
         if (show) {
-          onboardingIndex = 0;
-          renderStep();
+          resetOnboardingState();
         }
+      }
+
+      function resetOnboardingState() {
+        onboardingIndex = 0;
+        Object.keys(onboardingAnswers).forEach((key) => delete onboardingAnswers[key]);
+        onboardingOptions.innerHTML = "";
+        onboardingInput.innerHTML = "";
+        onboardingStatus.textContent = "";
+        renderStep();
       }
 
       function setStepButtons() {
