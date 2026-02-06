@@ -849,7 +849,8 @@
             toggleOnboarding(true);
             return;
           }
-          toggleOnboarding(true);
+          authStatus.textContent = "Signed in. Redirecting to dashboard...";
+          goToBilling();
           return;
         }
         if (newSignup) {
