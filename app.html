@@ -310,6 +310,27 @@
         }
       }
 
+      function setPendingOnboarding(data) {
+        try {
+          localStorage.setItem("wp_onboarding_pending", JSON.stringify(data || {}));
+        } catch {}
+      }
+
+      function getPendingOnboarding() {
+        try {
+          const raw = localStorage.getItem("wp_onboarding_pending");
+          return raw ? JSON.parse(raw) : null;
+        } catch {
+          return null;
+        }
+      }
+
+      function clearPendingOnboarding() {
+        try {
+          localStorage.removeItem("wp_onboarding_pending");
+        } catch {}
+      }
+
       function setOnboardingUserId(id) {
         try {
           if (id) {
@@ -765,13 +786,31 @@
         await syncProfileFromAuth();
         const profile = await fetchProfile();
         const newSignup = localStorage.getItem("wp_new_signup") === "1";
+        const pending = getPendingOnboarding();
         if (profile && profile.onboarding_completed) {
           localStorage.removeItem("wp_new_signup");
           setOnboardingUserId("");
+          clearPendingOnboarding();
           await applyReferralIfNeeded();
           authStatus.textContent = "Signed in. Redirecting to dashboard...";
           goToBilling();
           return;
+        }
+        if (pending && profile && profile.onboarding_completed === false) {
+          try {
+            await ensureSessionReady();
+            await fetch("https://vnzlaidwxgiaowhxtuvi.functions.supabase.co/onboarding-submit", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                apikey: SUPABASE_ANON_KEY,
+                Authorization: `Bearer ${getAccessToken()}`
+              },
+              body: JSON.stringify({ data: pending })
+            });
+            markOnboardingDone();
+            clearPendingOnboarding();
+          } catch {}
         }
         if (profile && profile.onboarding_completed === false && hasOnboardingDoneFlag()) {
           localStorage.removeItem("wp_new_signup");
@@ -806,25 +845,10 @@
 
       async function submitOnboarding(event) {
         event.preventDefault();
-        if (!await ensureSessionReady()) {
-          onboardingStatus.textContent = "Please sign in to finish setup.";
-          onboardingSubmit.disabled = false;
-          return;
-        }
+        await ensureSessionReady();
         onboardingStatus.textContent = "Saving...";
         onboardingSubmit.disabled = true;
-        for (let i = 0; i < onboardingSteps.length; i += 1) {
-          const step = onboardingSteps[i];
-          const value = onboardingAnswers[step.id];
-          const ok = step.type === "text" ? true : (step.type === "single" ? !!value : Array.isArray(value) && value.length > 0);
-          if (!ok) {
-            onboardingStatus.textContent = "Please answer all required questions.";
-            onboardingIndex = i;
-            renderStep();
-            onboardingSubmit.disabled = false;
-            return;
-          }
-        }
+        // All questions are optional; allow finishing without answers.
         const referralInput = (onboardingAnswers.referral || "").trim();
         if (referralInput) {
           const referralCheck = await validateReferral(referralInput);
@@ -848,6 +872,10 @@
 
         async function sendOnboarding() {
           await ensureSessionReady();
+          if (!hasSessionToken()) {
+            setPendingOnboarding(payload);
+            return { ok: false, status: 0, text: async () => "session missing" };
+          }
           return fetch("https://vnzlaidwxgiaowhxtuvi.functions.supabase.co/onboarding-submit", {
             method: "POST",
             headers: {
@@ -871,37 +899,38 @@
 
         try {
           let res = await sendOnboarding();
-            if (!res.ok) {
-              if (res.status === 401) {
-                const refreshed = await refreshSession();
-                if (refreshed) {
-                  onboardingStatus.textContent = "Session refreshed. Saving...";
-                  res = await sendOnboarding();
-                  if (res.ok) {
-                    const confirmed = await confirmOnboardingSaved();
-                    if (!confirmed) {
-                      onboardingStatus.textContent = "We couldn't confirm your setup was saved. Please try again.";
-                      onboardingSubmit.disabled = false;
-                      return;
-                    }
-                    return finishOnboarding();
+          if (!res.ok) {
+            if (res.status === 401) {
+              const refreshed = await refreshSession();
+              if (refreshed) {
+                onboardingStatus.textContent = "Session refreshed. Saving...";
+                res = await sendOnboarding();
+                if (res.ok) {
+                  const confirmed = await confirmOnboardingSaved();
+                  if (!confirmed) {
+                    onboardingStatus.textContent = "We couldn't confirm your setup was saved. Please try again.";
+                    onboardingSubmit.disabled = false;
+                    return;
                   }
+                  return finishOnboarding();
                 }
-              onboardingStatus.textContent = "Session expired. Please sign in again.";
-              return;
               }
-              const text = await res.text();
-              onboardingStatus.textContent = `Save failed: ${text}`;
-              return;
+              setPendingOnboarding(payload);
+              return finishOnboarding();
             }
+            const text = await res.text();
+            setPendingOnboarding(payload);
+            return finishOnboarding();
+          }
           const confirmed = await confirmOnboardingSaved();
           if (!confirmed) {
-            onboardingStatus.textContent = "We couldn't confirm your setup was saved. Please try again.";
-            return;
+            setPendingOnboarding(payload);
+            return finishOnboarding();
           }
           return finishOnboarding();
         } catch (error) {
-          onboardingStatus.textContent = `Save failed: ${error.message || "network error"}`;
+          setPendingOnboarding(payload);
+          return finishOnboarding();
         } finally {
           onboardingSubmit.disabled = false;
         }
@@ -913,7 +942,7 @@
         localStorage.removeItem("wp_new_signup");
         markOnboardingDone();
         setOnboardingUserId("");
-        window.location.href = "download.html";
+        window.location.href = "billing.html";
       }
 
       onboardingForm.addEventListener("submit", submitOnboarding);
