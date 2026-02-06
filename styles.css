@@ -869,6 +869,18 @@ a {
   border: 1px solid var(--border);
 }
 
+.meta-row .subtle {
+  font-size: 13px;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+.meta-row .pill {
+  font-size: 14px;
+  padding: 8px 14px;
+  letter-spacing: 0.08em;
+}
+
 .smart-row strong {
   color: var(--text);
 }
