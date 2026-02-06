@@ -272,6 +272,24 @@
         storeSession(null);
       }
 
+      function onboardingDoneKey() {
+        return "wp_onboarding_done";
+      }
+
+      function markOnboardingDone() {
+        try {
+          localStorage.setItem(onboardingDoneKey(), "1");
+        } catch {}
+      }
+
+      function hasOnboardingDoneFlag() {
+        try {
+          return localStorage.getItem(onboardingDoneKey()) === "1";
+        } catch {
+          return false;
+        }
+      }
+
       function loadSession() {
         try {
           const raw = localStorage.getItem("wp_session");
@@ -705,6 +723,13 @@
           goToBilling();
           return;
         }
+        if (profile && profile.onboarding_completed === false && hasOnboardingDoneFlag()) {
+          localStorage.removeItem("wp_new_signup");
+          await applyReferralIfNeeded();
+          authStatus.textContent = "Signed in. Redirecting to dashboard...";
+          goToBilling();
+          return;
+        }
         if (profile && profile.onboarding_completed === false) {
           toggleOnboarding(true);
           return;
@@ -782,31 +807,29 @@
 
         try {
           let res = await sendOnboarding();
-          if (!res.ok) {
-            if (res.status === 401) {
-              const refreshed = await refreshSession();
-              if (refreshed) {
-                onboardingStatus.textContent = "Session refreshed. Saving...";
-                res = await sendOnboarding();
-                if (res.ok) {
-                  const confirmed = await confirmOnboardingSaved();
-                  if (!confirmed) {
-                    onboardingStatus.textContent = "We couldn't confirm your setup was saved. Please try again.";
-                    onboardingSubmit.disabled = false;
-                    return;
+            if (!res.ok) {
+              if (res.status === 401) {
+                const refreshed = await refreshSession();
+                if (refreshed) {
+                  onboardingStatus.textContent = "Session refreshed. Saving...";
+                  res = await sendOnboarding();
+                  if (res.ok) {
+                    const confirmed = await confirmOnboardingSaved();
+                    if (!confirmed) {
+                      onboardingStatus.textContent = "We couldn't confirm your setup was saved. Please try again.";
+                      onboardingSubmit.disabled = false;
+                      return;
+                    }
+                    return finishOnboarding();
                   }
-                  return finishOnboarding();
                 }
-              }
               onboardingStatus.textContent = "Session expired. Please sign in again.";
-              toggleOnboarding(false);
-              navigateWithFade("app.html?signed_out=1");
+              return;
+              }
+              const text = await res.text();
+              onboardingStatus.textContent = `Save failed: ${text}`;
               return;
             }
-            const text = await res.text();
-            onboardingStatus.textContent = `Save failed: ${text}`;
-            return;
-          }
           const confirmed = await confirmOnboardingSaved();
           if (!confirmed) {
             onboardingStatus.textContent = "We couldn't confirm your setup was saved. Please try again.";
@@ -824,6 +847,7 @@
         onboardingStatus.textContent = "Saved! Redirecting...";
         toggleOnboarding(false);
         localStorage.removeItem("wp_new_signup");
+        markOnboardingDone();
         window.location.href = "download.html";
       }
 
