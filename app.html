@@ -654,7 +654,7 @@
         toggleOnboarding(true);
       }
 
-      onboardingForm.addEventListener("submit", async (event) => {
+      async function submitOnboarding(event) {
         event.preventDefault();
         if (!hasSessionToken()) {
           onboardingStatus.textContent = "Please sign in to finish setup.";
@@ -689,8 +689,8 @@
           device: onboardingAnswers.device || ""
         };
 
-        try {
-          const res = await fetch("https://vnzlaidwxgiaowhxtuvi.functions.supabase.co/onboarding-submit", {
+        async function sendOnboarding() {
+          return fetch("https://vnzlaidwxgiaowhxtuvi.functions.supabase.co/onboarding-submit", {
             method: "POST",
             headers: {
               "Content-Type": "application/json",
@@ -699,13 +699,27 @@
             },
             body: JSON.stringify({ data: payload })
           });
+        }
+
+        try {
+          let res = await sendOnboarding();
           if (!res.ok) {
             if (res.status === 401) {
               const refreshed = await refreshSession();
               if (refreshed) {
                 onboardingStatus.textContent = "Session refreshed. Saving...";
-                onboardingSubmit.disabled = false;
-                return;
+                res = await sendOnboarding();
+                if (res.ok) {
+                  await applyReferralIfNeeded();
+                  onboardingStatus.textContent = "Saved! Redirecting...";
+                  toggleOnboarding(false);
+                  localStorage.removeItem("wp_new_signup");
+                  localStorage.removeItem("wp_session");
+                  sessionStorage.removeItem("wp_session");
+                  session = null;
+                  navigateWithFade("download.html");
+                  return;
+                }
               }
               onboardingStatus.textContent = "Session expired. Please sign in again.";
               toggleOnboarding(false);
@@ -729,7 +743,9 @@
         } finally {
           onboardingSubmit.disabled = false;
         }
-      });
+      }
+
+      onboardingForm.addEventListener("submit", submitOnboarding);
 
 
       function navigateWithFade(url) {
