@@ -38,7 +38,6 @@
             <div class="form-stack">
               <input class="input" id="admin-passkey" type="password" placeholder="Admin passkey" />
               <div class="cta-row">
-                <button class="btn btn-outline" id="admin-save-passkey">Save Passkey</button>
                 <button class="btn btn-primary" id="admin-check">Verify Access</button>
               </div>
             </div>
@@ -113,7 +112,6 @@
       const searchStatusEl = document.getElementById("admin-search-status");
       const statusEl = document.getElementById("admin-status");
       const passkeyEl = document.getElementById("admin-passkey");
-      const savePasskeyEl = document.getElementById("admin-save-passkey");
       const checkEl = document.getElementById("admin-check");
       const searchEmailEl = document.getElementById("admin-search-email");
       const searchEl = document.getElementById("admin-search");
@@ -151,14 +149,14 @@
       function getPasskey() {
         return (localStorage.getItem("wp_admin_passkey") || "").trim();
       }
-      function savePasskey() {
+      function setPasskey() {
         const val = (passkeyEl.value || "").trim();
         if (!val) {
           accessStatusEl.textContent = "Enter a passkey first.";
-          return;
+          return false;
         }
         localStorage.setItem("wp_admin_passkey", val);
-        accessStatusEl.textContent = "Passkey saved.";
+        return true;
       }
 
       function authHeaders(extra = {}) {
@@ -171,6 +169,7 @@
       }
 
       async function ensureAdmin() {
+        setPasskey();
         accessStatusEl.textContent = "Checking access...";
         setAdminUnlocked(false);
         if (!hasSessionToken()) {
@@ -304,15 +303,13 @@
         });
       });
 
-      savePasskeyEl.addEventListener("click", savePasskey);
       checkEl.addEventListener("click", ensureAdmin);
       searchEl.addEventListener("click", searchUser);
       submitEl.addEventListener("click", submitUpdate);
       resetEl.addEventListener("click", resetForm);
 
       loadSession();
-      const savedPasskey = getPasskey();
-      if (savedPasskey) passkeyEl.value = savedPasskey;
+      passkeyEl.value = "";
       setAdminUnlocked(false);
     </script>
   </body>
