@@ -478,6 +478,7 @@ a {
   box-shadow: var(--shadow);
   color: var(--text);
   transition: transform 0.25s ease, box-shadow 0.25s ease;
+  position: relative;
 }
 
 .pricing-card:hover {
@@ -513,6 +514,25 @@ a {
   color: var(--muted);
   font-size: 13px;
   margin-bottom: 6px;
+}
+
+.pricing-badge {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  padding: 6px 10px;
+  border-radius: 999px;
+  color: #081019;
+  background: linear-gradient(90deg, rgba(79,139,255,0.9), rgba(160,197,255,0.9));
+  box-shadow: 0 8px 20px rgba(59,130,246,0.25);
+}
+
+.pricing-badge.badge-best {
+  background: linear-gradient(90deg, rgba(80,200,120,0.9), rgba(199,255,122,0.9));
 }
 
 .pricing-notes ul {
