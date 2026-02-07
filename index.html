@@ -365,24 +365,37 @@
       }, { threshold: 0.18, rootMargin: "0px 0px -10% 0px" });
       revealTargets.forEach((el) => observer.observe(el));
 
-      const demoTitle = "How Rest Fuels Better Work";
-      const demoMeta = "Grade 11 • Review: Heavy • 1,450 words • Humanize: On";
-      const demoLines = [
-        "Rest is not the opposite of productivity—it is the condition that makes focus possible.",
-        "When students plan for rest, their writing improves because attention returns sharper.",
-        "WriterPro mirrors this rhythm: outline, draft, pause, refine.",
-        "",
-        "The workflow starts with a clear thesis and three supporting points.",
-        "Topic sentences arrive first, then evidence, then a short transition.",
-        "Small pauses are intentional—like a student thinking between sentences.",
-        "",
-        "In practice, rest resets working memory and reduces cognitive drift.",
-        "That makes revision cleaner: fewer repeats, better word choice, smoother flow.",
-        "",
-        "WriterPro keeps the tone consistent while still typing in a human cadence.",
-        "You can see the pauses, the occasional correction, and the natural pacing.",
-        "",
-        "The result is a polished draft that reads like a real student—not a template."
+      const demoTitle = "The Power of Rest in Academic Performance";
+      const demoMeta = "Grade 11 • Review: Heavy • 1,620 words • Humanize: On";
+      const demoSequence = [
+        { type: "text", value: "Students often treat rest as wasted time, but rest is what makes sustained focus possible." },
+        { type: "pause", ms: 460 },
+        { type: "text", value: " When we plan for recovery, attention returns sharper and writing improves." },
+        { type: "pause", ms: 420 },
+        { type: "text", value: "\n\nWriterPro mirrors a real workflow: outline first, then draft with a natural cadence." },
+        { type: "pause", ms: 380 },
+        { type: "text", value: " It makes small corrections the same way a student would." },
+        { type: "pause", ms: 220 },
+        { type: "typo", wrong: " That means missign words are caught", correct: " That means missing words are caught" },
+        { type: "pause", ms: 260 },
+        { type: "text", value: " without disrupting the sentence." },
+        { type: "pause", ms: 320 },
+        { type: "text", value: "\n\nA clean structure still matters." },
+        { type: "pause", ms: 260 },
+        { type: "text", value: " First: a clear thesis." },
+        { type: "pause", ms: 200 },
+        { type: "text", value: " Then: evidence, explanation, and a short transition." },
+        { type: "pause", ms: 320 },
+        { type: "typo", wrong: " Smal pauses", correct: " Small pauses" },
+        { type: "text", value: " make the pacing feel human, not robotic." },
+        { type: "pause", ms: 380 },
+        { type: "text", value: "\n\nDuring revision, WriterPro revisits weak phrasing and refines it in place." },
+        { type: "pause", ms: 260 },
+        { type: "typo", wrong: " It swaps repeated words for varity", correct: " It swaps repeated words for variety" },
+        { type: "pause", ms: 240 },
+        { type: "text", value: ", and it tightens sentences without changing the meaning." },
+        { type: "pause", ms: 300 },
+        { type: "text", value: "\n\nThe end result reads like a real student draft—clear, focused, and naturally typed." }
       ];
 
       function startDemoTyping() {
@@ -398,10 +411,9 @@
           return;
         }
         const speed = 16;
-        const linePause = 300;
-        const paragraphPause = 520;
         const sentencePause = 140;
-        let line = 0;
+        const longPause = 520;
+        let tokenIndex = 0;
         let charIndex = 0;
 
         function typeText(target, text, done) {
@@ -418,39 +430,94 @@
           step();
         }
 
-        function typeBody() {
-          const current = demoLines[line];
-          if (charIndex < current.length) {
-            const nextChar = current.charAt(charIndex);
-            el.textContent += nextChar;
-            charIndex += 1;
-            const isSentenceEnd = nextChar === "." || nextChar === "!" || nextChar === "?";
-            const jitter = Math.random() * 12;
-            setTimeout(typeBody, speed + jitter + (isSentenceEnd ? sentencePause : 0));
-            return;
+        function typeWithBackspace(text, nextText, done) {
+          const wrong = text;
+          const correct = nextText;
+          let i = 0;
+          function typeWrong() {
+            if (i < wrong.length) {
+              el.textContent += wrong.charAt(i);
+              i += 1;
+              setTimeout(typeWrong, speed + Math.random() * 10);
+            } else {
+              setTimeout(backspace, 240);
+            }
           }
-          el.textContent += "\n";
-          line += 1;
-          charIndex = 0;
-          if (line >= demoLines.length) {
+          let backCount = wrong.length;
+          function backspace() {
+            if (backCount > 0) {
+              el.textContent = el.textContent.slice(0, -1);
+              backCount -= 1;
+              setTimeout(backspace, 10 + Math.random() * 14);
+            } else {
+              setTimeout(typeCorrect, 120);
+            }
+          }
+          let c = 0;
+          function typeCorrect() {
+            if (c < correct.length) {
+              const ch = correct.charAt(c);
+              el.textContent += ch;
+              c += 1;
+              const isSentenceEnd = ch === "." || ch === "!" || ch === "?";
+              setTimeout(typeCorrect, speed + Math.random() * 10 + (isSentenceEnd ? sentencePause : 0));
+            } else {
+              done();
+            }
+          }
+          typeWrong();
+        }
+
+        function typeToken() {
+          const token = demoSequence[tokenIndex];
+          if (!token) {
             setTimeout(() => {
               titleEl.textContent = "";
               metaEl.textContent = "";
               el.textContent = "";
-              line = 0;
+              tokenIndex = 0;
               charIndex = 0;
               startDemoTyping();
             }, 2600);
-          } else {
-            setTimeout(typeBody, current.length > 0 ? linePause : paragraphPause);
+            return;
           }
+          if (token.type === "pause") {
+            tokenIndex += 1;
+            setTimeout(typeToken, token.ms || longPause);
+            return;
+          }
+          if (token.type === "typo") {
+            typeWithBackspace(token.wrong, token.correct, () => {
+              tokenIndex += 1;
+              setTimeout(typeToken, 180);
+            });
+            return;
+          }
+          if (token.type === "text") {
+            const current = token.value;
+            if (charIndex < current.length) {
+              const nextChar = current.charAt(charIndex);
+              el.textContent += nextChar;
+              charIndex += 1;
+              const isSentenceEnd = nextChar === "." || nextChar === "!" || nextChar === "?";
+              const jitter = Math.random() * 12;
+              setTimeout(typeToken, speed + jitter + (isSentenceEnd ? sentencePause : 0));
+              return;
+            }
+            charIndex = 0;
+            tokenIndex += 1;
+            setTimeout(typeToken, 120);
+            return;
+          }
+          tokenIndex += 1;
+          setTimeout(typeToken, 120);
         }
 
         function startDemo() {
           typeText(titleEl, demoTitle, () => {
             setTimeout(() => {
               typeText(metaEl, demoMeta, () => {
-                setTimeout(typeBody, 360);
+                setTimeout(typeToken, 360);
               });
             }, 240);
           });
