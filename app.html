@@ -118,6 +118,7 @@
       const loginBtn = document.getElementById("login");
       const signupBtn = document.getElementById("signup");
       const signupLimitKey = "wp_signup_day";
+      const signupCookieName = "wp_signup_day";
       const onboardingOverlay = document.getElementById("onboarding-overlay");
       const onboardingForm = document.getElementById("onboarding-form");
       const onboardingStatus = document.getElementById("onb-status");
@@ -538,13 +539,11 @@
 
       async function signUp() {
         const todayKey = new Date().toISOString().slice(0, 10);
-        try {
-          const last = localStorage.getItem(signupLimitKey);
-          if (last === todayKey) {
-            authStatus.textContent = "Account creation limit reached for this device. Try again tomorrow.";
-            return;
-          }
-        } catch {}
+        const last = getSignupLimitDay();
+        if (last === todayKey) {
+          authStatus.textContent = "Account creation limit reached for this device. Try again tomorrow.";
+          return;
+        }
         const email = emailEl.value.trim();
         const password = passwordEl.value;
         const confirm = passwordConfirmEl.value;
@@ -590,7 +589,7 @@
             return;
           }
           try { localStorage.setItem("wp_last_email", email); } catch {}
-          try { localStorage.setItem(signupLimitKey, todayKey); } catch {}
+          setSignupLimitDay(todayKey);
           localStorage.setItem("wp_new_signup", "1");
           if (payload && payload.access_token) {
             storeSession(payload);
@@ -1077,3 +1076,33 @@
     </script>
   </body>
 </html>
+      function readCookie(name) {
+        try {
+          const match = document.cookie.match(new RegExp("(^| )" + name + "=([^;]+)"));
+          return match ? decodeURIComponent(match[2]) : null;
+        } catch {
+          return null;
+        }
+      }
+
+      function writeCookie(name, value, days) {
+        try {
+          const expires = new Date();
+          expires.setTime(expires.getTime() + days * 24 * 60 * 60 * 1000);
+          document.cookie = `${name}=${encodeURIComponent(value)}; expires=${expires.toUTCString()}; path=/; SameSite=Lax`;
+        } catch {}
+      }
+
+      function getSignupLimitDay() {
+        let stored = null;
+        try { stored = localStorage.getItem(signupLimitKey); } catch {}
+        if (!stored) {
+          stored = readCookie(signupCookieName);
+        }
+        return stored;
+      }
+
+      function setSignupLimitDay(day) {
+        try { localStorage.setItem(signupLimitKey, day); } catch {}
+        writeCookie(signupCookieName, day, 2);
+      }

@@ -32,30 +32,42 @@
     <section class="section">
       <div class="admin-shell">
         <div class="admin-grid">
-          <div class="admin-panel admin-access-panel">
-            <h3>Access</h3>
-            <p class="subtle">Admin session + passkey are required.</p>
-            <div class="form-stack">
-              <input class="input" id="admin-username" type="text" placeholder="Admin username" />
-              <input class="input" id="admin-passkey" type="password" placeholder="Admin passkey" />
-              <div class="cta-row">
-                <button class="btn btn-primary" id="admin-check">Verify Access</button>
-              </div>
-            </div>
-            <p class="notice" id="admin-access-status"></p>
-          </div>
-
-          <div id="admin-content">
-            <div class="admin-panel">
-              <h3>Lookup</h3>
-              <p class="subtle">Find an account by email.</p>
+          <div class="admin-sidebar">
+            <div class="admin-panel admin-access-panel">
+              <h3>Access</h3>
+              <p class="subtle">Admin session + passkey are required.</p>
               <div class="form-stack">
-                <input class="input" id="admin-search-email" type="email" placeholder="user@email.com" />
+                <input class="input" id="admin-username" type="text" placeholder="Admin username" />
+                <input class="input" id="admin-passkey" type="password" placeholder="Admin passkey" />
                 <div class="cta-row">
-                  <button class="btn btn-primary" id="admin-search">Search User</button>
+                  <button class="btn btn-primary" id="admin-check">Verify Access</button>
                 </div>
               </div>
-              <p class="notice" id="admin-search-status"></p>
+              <p class="notice" id="admin-access-status"></p>
+            </div>
+
+            <div id="admin-content">
+              <div class="admin-panel">
+                <h3>Lookup</h3>
+                <p class="subtle">Find an account by email.</p>
+                <div class="form-stack">
+                  <input class="input" id="admin-search-email" type="email" placeholder="user@email.com" />
+                  <div class="cta-row">
+                    <button class="btn btn-primary" id="admin-search">Search User</button>
+                  </div>
+                </div>
+                <p class="notice" id="admin-search-status"></p>
+              </div>
+            </div>
+
+            <div class="admin-panel admin-help">
+              <h3>Tips</h3>
+              <p class="subtle">Common admin actions:</p>
+              <ul>
+                <li>Search by email, then update credits or tier.</li>
+                <li>Set referral codes for influencer accounts.</li>
+                <li>Log manual purchases if needed.</li>
+              </ul>
             </div>
           </div>
         </div>
@@ -96,46 +108,76 @@
             </div>
           </div>
 
-          <div class="admin-section-title">Account Updates</div>
-          <div class="form-stack admin-form-stack">
-            <div class="two-col">
-              <input class="input" id="admin-email" type="email" placeholder="Account email" />
-              <input class="input" id="admin-email-set" type="email" placeholder="Set new email" />
-            </div>
-            <div class="two-col">
-              <input class="input" id="admin-credits-add" type="number" placeholder="Credits to add" />
-              <input class="input" id="admin-credits-set" type="number" placeholder="Set credits" />
-            </div>
-            <input class="input" id="admin-referral-code-set" type="text" placeholder="Set referral code (unique)" />
-            <select class="input" id="admin-tier">
-              <option value="">Keep current tier</option>
-              <option value="writer">Writer (65)</option>
-              <option value="study">Study (180)</option>
-              <option value="test">Test (430)</option>
-              <option value="unlimited">Unlimited</option>
-            </select>
-            <label class="input admin-toggle">
-              <span>Admin Access</span>
-              <input type="checkbox" id="admin-is-admin" />
-            </label>
-            <div class="admin-section-title">Security</div>
-            <div class="two-col">
-              <input class="input" id="admin-password" type="password" placeholder="Set new password" />
-              <input class="input" id="admin-password-confirm" type="password" placeholder="Confirm new password" />
-            </div>
-            <div class="admin-panel admin-referral-uses">
-              <h4>Manual Purchase</h4>
-              <div class="two-col">
-                <input class="input" id="admin-purchase-pack" type="text" placeholder="Pack ID (optional)" />
-                <input class="input" id="admin-purchase-credits" type="number" placeholder="Credits" />
+          <div class="admin-section-grid">
+            <div class="admin-section-card">
+              <div class="admin-section-title">Account</div>
+              <div class="form-stack admin-form-stack">
+                <div class="two-col">
+                  <input class="input" id="admin-email" type="email" placeholder="Account email" />
+                  <input class="input" id="admin-email-set" type="email" placeholder="Set new email" />
+                </div>
+                <label class="input admin-toggle">
+                  <span>Admin Access</span>
+                  <input type="checkbox" id="admin-is-admin" />
+                </label>
               </div>
-              <div class="two-col">
-                <input class="input" id="admin-purchase-amount" type="number" placeholder="Amount (cents)" />
-                <input class="input" id="admin-purchase-currency" type="text" placeholder="Currency (usd)" />
+            </div>
+
+            <div class="admin-section-card">
+              <div class="admin-section-title">Credits</div>
+              <div class="form-stack admin-form-stack">
+                <div class="two-col">
+                  <input class="input" id="admin-credits-add" type="number" placeholder="Credits to add" />
+                  <input class="input" id="admin-credits-set" type="number" placeholder="Set credits" />
+                </div>
               </div>
-              <div class="two-col">
-                <input class="input" id="admin-purchase-status" type="text" placeholder="Status (paid)" />
-                <button class="btn btn-outline" id="admin-purchase-add">Add Purchase</button>
+            </div>
+
+            <div class="admin-section-card">
+              <div class="admin-section-title">Subscription</div>
+              <div class="form-stack admin-form-stack">
+                <select class="input" id="admin-tier">
+                  <option value="">Keep current tier</option>
+                  <option value="writer">Writer (65)</option>
+                  <option value="study">Study (180)</option>
+                  <option value="test">Test (430)</option>
+                  <option value="unlimited">Unlimited</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="admin-section-card">
+              <div class="admin-section-title">Referral</div>
+              <div class="form-stack admin-form-stack">
+                <input class="input" id="admin-referral-code-set" type="text" placeholder="Set referral code (unique)" />
+              </div>
+            </div>
+
+            <div class="admin-section-card">
+              <div class="admin-section-title">Security</div>
+              <div class="form-stack admin-form-stack">
+                <div class="two-col">
+                  <input class="input" id="admin-password" type="password" placeholder="Set new password" />
+                  <input class="input" id="admin-password-confirm" type="password" placeholder="Confirm new password" />
+                </div>
+              </div>
+            </div>
+
+            <div class="admin-section-card">
+              <div class="admin-section-title">Manual Purchase</div>
+              <div class="form-stack admin-form-stack">
+                <div class="two-col">
+                  <input class="input" id="admin-purchase-pack" type="text" placeholder="Pack ID (optional)" />
+                  <input class="input" id="admin-purchase-credits" type="number" placeholder="Credits" />
+                </div>
+                <div class="two-col">
+                  <input class="input" id="admin-purchase-amount" type="number" placeholder="Amount (cents)" />
+                  <input class="input" id="admin-purchase-currency" type="text" placeholder="Currency (usd)" />
+                </div>
+                <div class="two-col">
+                  <input class="input" id="admin-purchase-status" type="text" placeholder="Status (paid)" />
+                  <button class="btn btn-outline" id="admin-purchase-add">Add Purchase</button>
+                </div>
               </div>
             </div>
           </div>

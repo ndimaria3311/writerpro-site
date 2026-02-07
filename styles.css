@@ -315,7 +315,7 @@ a {
 
 .stat-label {
   color: var(--muted);
-  font-size: 12px;
+  font-size: 13px;
 }
 
 .hero-mock {
@@ -354,7 +354,7 @@ a {
 .mock-title {
   font-weight: 600;
   letter-spacing: 1px;
-  font-size: 12px;
+  font-size: 13px;
   color: var(--muted);
 }
 
@@ -520,7 +520,7 @@ a {
   position: absolute;
   top: 14px;
   right: 14px;
-  font-size: 11px;
+  font-size: 13px;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.08em;
@@ -562,7 +562,7 @@ a {
   border-radius: 12px;
   padding: 10px;
   color: var(--muted);
-  font-size: 12px;
+  font-size: 13px;
   background: var(--surface-alt);
 }
 
@@ -582,7 +582,7 @@ a {
 
 .small {
   margin-top: 10px;
-  font-size: 12px;
+  font-size: 13px;
   color: var(--muted);
 }
 
@@ -696,7 +696,7 @@ a {
 
 .input span {
   display: block;
-  font-size: 12px;
+  font-size: 13px;
   text-transform: uppercase;
   letter-spacing: 0.08em;
   color: var(--muted);
@@ -910,7 +910,7 @@ a {
 }
 
 .progress-label {
-  font-size: 12px;
+  font-size: 13px;
   color: var(--text-muted);
   margin-bottom: 8px;
 }
@@ -944,7 +944,7 @@ a {
   color: var(--accent);
   padding: 6px 10px;
   border-radius: 999px;
-  font-size: 12px;
+  font-size: 13px;
   border: 1px solid rgba(0, 122, 255, 0.2);
 }
 
@@ -969,7 +969,7 @@ a {
   border-radius: 12px;
   background: rgba(255, 255, 255, 0.02);
   border: 1px solid var(--border);
-  font-size: 12px;
+  font-size: 13px;
   color: var(--text-muted);
   margin-bottom: 18px;
 }
@@ -998,7 +998,7 @@ a {
   border: 1px solid rgba(255, 255, 255, 0.12);
   background: rgba(255, 255, 255, 0.04);
   color: var(--text);
-  font-size: 11px;
+  font-size: 13px;
 }
 
 .doc-page {
@@ -1017,7 +1017,7 @@ a {
 }
 
 .doc-meta {
-  font-size: 12px;
+  font-size: 13px;
   color: var(--text-muted);
   margin-bottom: 14px;
 }
@@ -1215,6 +1215,11 @@ body.reduced-motion * {
   gap: 18px;
 }
 
+.admin-sidebar {
+  display: grid;
+  gap: 16px;
+}
+
 .admin-locked .admin-grid {
   grid-template-columns: 1fr;
 }
@@ -1247,6 +1252,28 @@ body.reduced-motion * {
   padding: 24px;
 }
 
+.admin-help ul {
+  margin: 12px 0 0;
+  padding-left: 18px;
+  color: var(--text-muted);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.admin-section-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 14px;
+  margin-top: 8px;
+}
+
+.admin-section-card {
+  background: var(--surface-alt);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 16px;
+  padding: 14px;
+}
+
 .admin-panel-head {
   display: flex;
   align-items: center;
@@ -1266,7 +1293,7 @@ body.reduced-motion * {
   border-radius: 999px;
   border: 1px solid rgba(255, 255, 255, 0.12);
   background: rgba(15, 23, 42, 0.55);
-  font-size: 12px;
+  font-size: 13px;
   color: var(--text-subtle);
 }
 
@@ -1291,7 +1318,7 @@ body.reduced-motion * {
 }
 
 .admin-kpi .label {
-  font-size: 12px;
+  font-size: 13px;
   text-transform: uppercase;
   letter-spacing: 0.08em;
   color: var(--text-muted);
@@ -1311,7 +1338,7 @@ body.reduced-motion * {
 
 .admin-section-title {
   margin-top: 6px;
-  font-size: 12px;
+  font-size: 13px;
   text-transform: uppercase;
   letter-spacing: 0.08em;
   color: var(--text-muted);
@@ -1381,7 +1408,7 @@ body.reduced-motion * {
 
 .admin-json pre {
   margin: 0;
-  font-size: 12px;
+  font-size: 13px;
   line-height: 1.5;
   color: var(--text-primary);
   white-space: pre-wrap;
@@ -1392,7 +1419,7 @@ body.reduced-motion * {
 
 .btn-compact {
   padding: 6px 12px;
-  font-size: 12px;
+  font-size: 13px;
 }
 
 .input-compact {
@@ -1481,7 +1508,7 @@ body.reduced-motion * {
 
 .admin-onboarding-item span {
   display: block;
-  font-size: 11px;
+  font-size: 13px;
   text-transform: uppercase;
   letter-spacing: 0.08em;
   color: var(--text-muted);
@@ -1529,7 +1556,7 @@ body.reduced-motion * {
 
 .admin-log time {
   color: var(--text-muted);
-  font-size: 12px;
+  font-size: 13px;
 }
 
 .onboarding-overlay {
@@ -1610,7 +1637,7 @@ body.reduced-motion * {
 }
 
 .onboarding-step-count {
-  font-size: 12px;
+  font-size: 13px;
   text-transform: uppercase;
   letter-spacing: 0.12em;
   color: var(--text-muted);
