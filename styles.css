@@ -741,6 +741,14 @@ a {
   color: var(--text);
 }
 
+.pass-timer {
+  font-size: 28px;
+  font-weight: 600;
+  color: var(--text);
+  letter-spacing: 0.06em;
+  margin: 8px 0 6px;
+}
+
 .two-col {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
