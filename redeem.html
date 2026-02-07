@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Writer Pro — Redeem</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body class="legal-page page-enter">
+    <header class="hero legal-hero">
+      <nav class="nav">
+        <a class="logo" href="index.html">WRITER PRO</a>
+        <div class="nav-actions">
+          <a class="btn btn-outline page-link" href="index.html">HOME</a>
+          <a class="btn btn-outline page-link" href="billing.html">BILLING</a>
+        </div>
+      </nav>
+      <div class="hero-grid legal-hero-grid">
+        <div class="hero-copy legal-hero-copy">
+          <h1>REDEEM YOUR CODE</h1>
+          <p class="subtitle">Verify your Linkvertise unlock to get a one‑time code.</p>
+        </div>
+      </div>
+    </header>
+
+    <section class="section">
+      <div class="card">
+        <h3>Verify & Redeem</h3>
+        <p class="subtle" id="redeem-status">Waiting for Linkvertise verification…</p>
+        <div class="form-stack" style="margin-top: 12px;">
+          <div class="input-group">
+            <input class="input" id="redeem-code" type="text" readonly placeholder="Your code will appear here" />
+            <button class="btn btn-outline" id="copy-code" type="button">Copy</button>
+          </div>
+          <div class="cta-row">
+            <a class="btn btn-primary" id="open-billing" href="billing.html">Open Billing</a>
+            <a class="btn btn-outline page-link" href="app.html">Sign In</a>
+          </div>
+          <p class="notice" id="redeem-detail"></p>
+        </div>
+      </div>
+    </section>
+
+    <script>
+      const statusEl = document.getElementById("redeem-status");
+      const detailEl = document.getElementById("redeem-detail");
+      const codeEl = document.getElementById("redeem-code");
+      const copyBtn = document.getElementById("copy-code");
+      const billingBtn = document.getElementById("open-billing");
+
+      function navigateWithFade(url) {
+        document.body.classList.add("page-exit");
+        setTimeout(() => { window.location.href = url; }, 240);
+      }
+      document.querySelectorAll(".page-link").forEach((link) => {
+        link.addEventListener("click", (event) => {
+          const href = link.getAttribute("href") || "";
+          if (href.startsWith("#")) return;
+          event.preventDefault();
+          navigateWithFade(href);
+        });
+      });
+
+      async function verify() {
+        const params = new URLSearchParams(window.location.search);
+        const hash = (params.get("hash") || "").trim();
+        if (!hash) {
+          statusEl.textContent = "Missing Linkvertise hash.";
+          detailEl.textContent = "Please complete the Linkvertise step again.";
+          return;
+        }
+        statusEl.textContent = "Verifying unlock…";
+        try {
+          const res = await fetch("https://vnzlaidwxgiaowhxtuvi.functions.supabase.co/linkvertise-verify", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ hash })
+          });
+          const text = await res.text();
+          if (!res.ok) {
+            statusEl.textContent = "Unlock expired or invalid.";
+            detailEl.textContent = text || "Please complete the Linkvertise step again.";
+            return;
+          }
+          const payload = JSON.parse(text);
+          if (!payload || !payload.code) {
+            statusEl.textContent = "Unlock verified, but no code received.";
+            return;
+          }
+          statusEl.textContent = "Unlocked. Copy your code below.";
+          codeEl.value = payload.code;
+          billingBtn.setAttribute("href", `billing.html?redeem=${encodeURIComponent(payload.code)}`);
+        } catch (err) {
+          statusEl.textContent = "Verification failed.";
+          detailEl.textContent = err?.message || "Network error.";
+        }
+      }
+
+      copyBtn.addEventListener("click", async () => {
+        const code = codeEl.value || "";
+        if (!code) return;
+        try {
+          await navigator.clipboard.writeText(code);
+          copyBtn.textContent = "Copied";
+          setTimeout(() => { copyBtn.textContent = "Copy"; }, 1200);
+        } catch {
+          copyBtn.textContent = "Copy failed";
+          setTimeout(() => { copyBtn.textContent = "Copy"; }, 1200);
+        }
+      });
+
+      verify();
+    </script>
+  </body>
+</html>
