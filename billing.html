@@ -469,6 +469,15 @@
               navigateWithFade(`app.html?next=${encodeURIComponent(targetBilling)}&signed_out=1`);
               return;
             }
+            if (res.status === 409) {
+              billingStatus.textContent = "You already have an active subscription. Use Manage Subscription to upgrade.";
+              if (isSubscriptionPack(packId)) {
+                setTimeout(() => {
+                  openPortal();
+                }, 600);
+              }
+              return;
+            }
             if (res.status === 404) {
               billingStatus.textContent = "Checkout service not found. Confirm Edge Function deployment.";
               return;
@@ -485,6 +494,10 @@
         } catch (error) {
           billingStatus.textContent = `Checkout failed: ${(error && error.message) || "network error"}`;
         }
+      }
+
+      function isSubscriptionPack(packId) {
+        return !!packId && (packId.includes("_monthly") || packId.includes("_yearly") || packId.startsWith("unlimited_"));
       }
 
       async function supabaseRequest(path, options, retry = true) {
